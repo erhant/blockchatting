@@ -2,24 +2,16 @@ import { BigNumber } from "ethers"
 import { parseEther } from "ethers/lib/utils"
 
 const contractConstants: Readonly<{
-  MyToken: {
+  Chat: {
     contractName: string
-    tokenName: string
-    tokenSymbol: string
-    totalSupply: BigNumber
-  }
-  Counter: {
-    contractName: string
+    entryFee: BigNumber
+    aliasFee: BigNumber
   }
 }> = {
-  MyToken: {
-    totalSupply: parseEther("100"),
-    contractName: "MyToken",
-    tokenName: "MyToken",
-    tokenSymbol: "MYTOK",
-  },
-  Counter: {
-    contractName: "Counter",
+  Chat: {
+    contractName: "Chat",
+    entryFee: parseEther("0.001"),
+    aliasFee: parseEther("0.0075"),
   },
 }
 

@@ -5,13 +5,9 @@ import contractConstants from "./contractConstants"
  * Contract addresses for each ChainID. These can also be read from .env
  */
 const contractAddresses: Readonly<{ [contractName: string]: { [chainId: number]: string | undefined } }> = {
-  [contractConstants.Counter.contractName]: {
+  [contractConstants.Chat.contractName]: {
     31337: "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
     4: "0x7C9f4AA2fe39c7F5E9E18626D2CDF577af12a47D",
-  },
-  [contractConstants.MyToken.contractName]: {
-    31337: "0x0165878A594ca255338adfa4d48449f69242Eb8F",
-    4: "0x1B7D3ea00f8e8142A5DFba8F95ceA8048eBC1bEC",
   },
 }
 
