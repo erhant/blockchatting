@@ -2,77 +2,83 @@
 pragma solidity ^0.8.5;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/security/PullPayment.sol";
 
 /**
  * @title Chat
  * @author erhant
  * @dev A chat contract that allows users to send messages via their addresses.
- * Messages are stored as events.
- * Users can give themselves aliases to be displayed.
  */
-contract Chat is Ownable {
+contract Chat is Ownable, PullPayment {
+  using SafeMath for uint256;
+
   /// MessageSent event is emitted when `from` sends `text` to `to`.
   event MessageSent(address indexed _from, address indexed _to, string _text);
+
+  /// Public Keys
+  mapping(address => bytes32[2]) private publicKeys;
+  uint256 public userCount = 0;
 
   /// AliasSet is emitted when `_user` sets their alias to `_alias`.
   /// Resetting an alias can be done by setting the alias to empty string.
   event AliasSet(address indexed _user, bytes32 _alias);
 
-  /// Entry fee to interact with the contract.
-  uint256 public entryFee = 0.001 ether;
+  /// Base fee to buy an alias for the user.
+  uint256 public aliasBaseFee = 0.0075 ether;
 
-  /// Alias fee to set an alias for the user.
-  uint256 public aliasFee = 0.0075 ether;
-
-  /// Mapping to keep track of which users have paid the entry fee.
-  mapping(address => bool) public hasPaidFee;
+  /// A mapping from address to alias
+  mapping(address => bytes32) public addressToAlias;
+  mapping(bytes32 => address) public aliasToAddress;
+  mapping(bytes32 => uint256) public aliasLastPrices;
 
   /// Modifier to allow users to interact only if they have paid the entry fee.
-  modifier onlyFeePaid() {
-    require(hasPaidFee[msg.sender], "User did not pay the entry fee.");
+  modifier onlyKeyProvided() {
+    require(publicKeys[msg.sender][0] | publicKeys[msg.sender][1] != 0, "User did not provide public key.");
     _;
   }
 
-  /// Emits a MessageSent event. The caller must have paid the entry fee.
-  function sendMessage(string calldata _text, address _to) external onlyFeePaid {
+  /// Emits a MessageSent event.
+  /// The caller must have paid the entry fee.
+  function sendMessage(string calldata _text, address _to) external onlyKeyProvided {
     emit MessageSent(msg.sender, _to, _text);
   }
 
-  /// Emits an AliasSet event. The caller must have paid the entry fee.
-  function setAlias(bytes32 _alias) external onlyFeePaid {
+  /// Emits an AliasSet event.
+  /// The caller must have paid the entry fee.
+  /// Alias is bought for aliasBaseFee + aliasLastPrice
+  function purchaseAlias(bytes32 _alias) external payable onlyKeyProvided {
+    // get last price
+    uint256 aliasLastPrice = aliasLastPrices[_alias];
+    require(msg.value >= aliasBaseFee.add(aliasLastPrice), "Insufficient ether");
+
+    // send last price to previous user
+    address lastOwner = aliasToAddress[_alias];
+    if (lastOwner != address(0)) {
+      _asyncTransfer(lastOwner, aliasLastPrice);
+    }
+
+    // update alias info
+    aliasLastPrice = msg.value;
+    aliasToAddress[_alias] = msg.sender;
+    addressToAlias[msg.sender] = _alias;
+
+    // emit event
     emit AliasSet(msg.sender, _alias);
   }
 
-  /// User pays the entry fee. The amount can be more than entry fee, in which case the extra amont is sent back to the user.
-  function payEntryFee() external payable {
-    require(!hasPaidFee[msg.sender], "User has already paid the entry fee.");
-    require(msg.value >= entryFee, "Insufficient amount for the entry fee!");
-
-    hasPaidFee[msg.sender] = true;
-
-    // send the extra back
-    if (msg.value > entryFee) {
-      payable(msg.sender).transfer(msg.value - entryFee);
-    }
+  /// User provides their public key to start using the application
+  function provideKey(bytes32 pk_half1, bytes32 pk_half2) external {
+    publicKeys[msg.sender][0] = pk_half1;
+    publicKeys[msg.sender][1] = pk_half2;
   }
 
-  /**
-   * @dev Change the entry fee
-   */
-  function changeEntryFee(uint256 amount) external onlyOwner {
-    entryFee = amount;
+  /// Change the alias base fee.
+  function changeAliasBaseFee(uint256 amount) external onlyOwner {
+    aliasBaseFee = amount;
   }
 
-  /**
-   * @dev Change the alias fee
-   */
-  function changeEntryFee(uint256 amount) external onlyOwner {
-    aliasFee = amount;
-  }
-
-  /**
-   * @dev Withdraw contract funds.
-   */
+  /// Withdraw contract balance.
   function withdraw() external onlyOwner {
     payable(msg.sender).transfer(address(this).balance);
   }

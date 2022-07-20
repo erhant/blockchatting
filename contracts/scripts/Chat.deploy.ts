@@ -4,10 +4,10 @@ import { Chat__factory, Chat } from "../../frontend/types/typechain"
 import contractConstants from "../../frontend/constants/contractConstants"
 
 export default async function main(): Promise<string> {
-  console.log(`\n[${contractConstants.Counter.contractName} Contract]`)
-  const factory = (await ethers.getContractFactory(contractConstants.Counter.contractName)) as Counter__factory
+  console.log(`\n[${contractConstants.Chat.contractName} Contract]`)
+  const factory = (await ethers.getContractFactory(contractConstants.Chat.contractName)) as Chat__factory
 
-  let contract = (await factory.deploy()) as Counter
+  let contract = (await factory.deploy()) as Chat
   console.log(`\tDeploying... (tx: ${contract.deployTransaction.hash})`)
   await contract.deployed()
 
@@ -21,7 +21,7 @@ export default async function main(): Promise<string> {
 if (require.main === module) {
   main()
     .then(() => process.exit(0))
-    .catch((error) => {
+    .catch(error => {
       console.error(error)
       process.exit(1)
     })

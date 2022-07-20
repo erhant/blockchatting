@@ -6,21 +6,37 @@ Obviously made for educational purposes, the gas fees are too high and notably u
 
 Contract address: [0x2304BBd56A0fBCBDb417522fA8fB2EAdCf64E3E4](https://rinkeby.etherscan.io/address/0x2304BBd56A0fBCBDb417522fA8fB2EAdCf64E3E4)
 
-- [x] **Entry Fee**: A small entry-fee (0.001 ETH) must be paid to enter the application.
-- [x] **Messaging**: You can send a message to anyone by giving their wallet address. Likewise, you can receive messages to your wallet address. Chatting is one-to-one only, no group messaging or multicasting. Note that you are literally making a transaction for each message, it is gonna cost some money. Thankfully though this is deployed in a test network and this is done for educational purposes.
-- [x] **Aliases**: For better UX, you can give yourself an alias to be shown instead of your wallet address. You can change this alias or delete it anytime.
-- [x] **Secrecy**: You can specify a secret phrase on client-side to encrypt your messages. The recipient should also know this and must give the same phrase to decrypt the messages. Uses [AES-256](https://www.npmjs.com/package/aes256). Note that changing the password at a later time means older messages will not be read. All messages are encrypted with a default key regardless so that at least it is slighlty harder to read them, at least not directly on the block explorer.
+## Peer-to-Peer Chatting
 
-## To-Do
+Although a [deprecated functionality of MetaMask](https://medium.com/metamask/metamask-api-method-deprecation-2b0564a84686), this application uses `eth_decrypt` and `eth_getEncryptionPublicKey` to use asymmetric encryption for the messages. See [this guide](https://betterprogramming.pub/exchanging-encrypted-data-on-blockchain-using-metamask-a2e65a9a896c) on how to use them.
 
-- [ ] There is a bug with removing event listeners on unmount.
+```mermaid
+sequenceDiagram
+  actor Alice
+  actor Blockchattin
+  actor Bob
 
-## Future Work
+  Note over Bob: pk = eth_getEncryptionPublicKey(Bob)
 
-As a future to-do, I plan on doing the messaging in a better way.
+  Bob ->> Blockchattin: pk
 
-- Let `p` be the public key of the recipient.
-- Let `s` be the private key of the sender (you).
-- When sending a message `m`, we could do `m' = enc(m, p) || enc(m, s)`.
+  Alice ->> Blockchattin: What is Bob's public key?
+  Blockchattin ->> Alice: pk
 
-This way, the messages that are online and visible will be encrypted, and only the sender and receiver can read them. The sender is doing symmetric encryption (the second half of the message) and the receiver is doing asymmetric encryption (first half of the message). This feature will be implemented once we have API to access the said keys via accounts.
+  Note over Alice: c = encrypt(pk, m)
+
+  Alice ->> Bob: c
+
+  Note over Bob: eth_decrypt(c, Bob)
+```
+
+## Aliases
+
+Normally, messaging is done via addresses but users can buy Aliases too. An alias price is defined as `baseFee + lastAliasPrice`. For example:
+
+1. Alice buys `cats1` alias for `baseFee + 0` ether. Upon purchase, `cats1` maps to Alice's address and vice versa.
+2. The `lastAliasPrice` of `cats1` is now `baseFee`.
+3. Bob would like to buy `cats1`, so he sends `baseFee + baseFee` to buy it.
+4. Alice can withdraw `baseFee` (which was the `lastAliasPrice` when Bob bought `cats1`).
+
+In the least-costly scenario, the prices are multiples of `baseFee`, but a user can pay much more for their alias if they wanted to. If someone else buys their Alias, they will get their money back with amount of `lastAliasPrice` they have set during their purchase.
