@@ -8,26 +8,27 @@ Contract address: [0x2304BBd56A0fBCBDb417522fA8fB2EAdCf64E3E4](https://rinkeby.e
 
 ## Peer-to-Peer Chatting
 
-Although a [deprecated functionality of MetaMask](https://medium.com/metamask/metamask-api-method-deprecation-2b0564a84686), this application uses `eth_decrypt` and `eth_getEncryptionPublicKey` to use asymmetric encryption for the messages. See [this guide](https://betterprogramming.pub/exchanging-encrypted-data-on-blockchain-using-metamask-a2e65a9a896c) on how to use them.
+Although a [deprecated functionality of MetaMask](https://medium.com/metamask/metamask-api-method-deprecation-2b0564a84686), this application uses [`eth_decrypt`](https://docs.metamask.io/guide/rpc-api.html#eth-decrypt-deprecated) and [`eth_getEncryptionPublicKey`](https://docs.metamask.io/guide/rpc-api.html#eth-getencryptionpublickey-deprecated) to use asymmetric encryption for the messages. See [this guide](https://betterprogramming.pub/exchanging-encrypted-data-on-blockchain-using-metamask-a2e65a9a896c) on how to use them.
+
+There are two drawbacks to these functions:
+
+1. `eth_decrypt` asks for user input everytime it is called.
+2. Encryption is done for UTF-8 only.
+
+So, EOA keypair will not be used for chatting per se. Instead, these keys will be used to generate a mnemonic, which will be used to generate key pairs.
+
+### Initial Setup
+
+When a user starts using the chatting application, the following takes place:
 
 ```mermaid
 sequenceDiagram
   actor Alice
-  actor Blockchattin
-  actor Bob
+  actor Contract
 
-  Note over Bob: pk = eth_getEncryptionPublicKey(Bob)
+  Note over Alice: sk := random 32-bytes
 
-  Bob ->> Blockchattin: pk
 
-  Alice ->> Blockchattin: What is Bob's public key?
-  Blockchattin ->> Alice: pk
-
-  Note over Alice: c = encrypt(pk, m)
-
-  Alice ->> Bob: c
-
-  Note over Bob: eth_decrypt(c, Bob)
 ```
 
 ## Aliases

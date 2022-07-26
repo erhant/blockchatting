@@ -33,43 +33,15 @@ const Home: NextPage = () => {
         </Group>
 
         <hr />
-        <Group position="apart" my="xl">
-          <Box sx={{ width: "50%" }}>
-            <Title order={3}>Contract Example Provided</Title>
-            <Text>
-              <b>A basic counter contract:</b> deploy it to your <code>localhost</code>, and then interact with it using
-              your injected wallet.
-            </Text>
-          </Box>
-          <Box>
-            <Link href="/counter" passHref>
-              <Anchor>
-                <Button variant="light" size="xl">
-                  Counter Contract Example
-                </Button>
-              </Anchor>
-            </Link>
-          </Box>
-        </Group>
-
-        <hr />
-        <Group position="apart" my="xl">
-          <Box>
-            <Link href="/mytoken" passHref>
-              <Anchor>
-                <Button variant="light" size="xl">
-                  ERC-20 Token Contract Example
-                </Button>
-              </Anchor>
-            </Link>
-          </Box>
-          <Box sx={{ textAlign: "right", width: "55%" }}>
-            <Title order={3}>ERC-20 Token Example Provided</Title>
-            <Text>
-              <b>A simple ERC-20 token:</b> deploy it, transfer it around!
-            </Text>
-          </Box>
-        </Group>
+        <Box>
+          <Link href="/testing" passHref>
+            <Anchor>
+              <Button variant="light" size="xl">
+                Test Page
+              </Button>
+            </Anchor>
+          </Link>
+        </Box>
       </>
     </Layout>
   )
