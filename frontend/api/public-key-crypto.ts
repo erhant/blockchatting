@@ -2,6 +2,7 @@
  * See https://betterprogramming.pub/exchanging-encrypted-data-on-blockchain-using-metamask-a2e65a9a896c
  * See https://whyboobo.com/devops/tutorials/asymmetric-encryption-with-nodejs
  * See https://ecies.org/js/
+ * See https://davidederosa.com/basic-blockchain-programming/elliptic-curve-keys/
  */
 import { randomBytes } from "crypto"
 import { encrypt as encryptMM } from "@metamask/eth-sig-util"
@@ -11,12 +12,14 @@ const ascii85 = require("ascii85")
 /**
  * A utility class that uses MetaMask RPC api to use public key cryptography of your EOA.
  */
-export class CryptoMetamask {
+export class CryptoEOA {
   SCHEME_VERSION: Readonly<string> = "x25519-xsalsa20-poly1305"
   ACCOUNT: Readonly<string> = ""
+  RPC: any
 
-  constructor(account: string) {
+  constructor(account: string, rpc: any = window.ethereum) {
     this.ACCOUNT = account
+    this.RPC = rpc
   }
 
   /**
@@ -25,7 +28,7 @@ export class CryptoMetamask {
   async encrypt(data: Buffer): Promise<Buffer> {
     // Public Key
     //@ts-ignore
-    const keyB64: string = (await window.ethereum.request({
+    const keyB64: string = (await this.RPC.request({
       method: "eth_getEncryptionPublicKey",
       params: [this.ACCOUNT],
     })) as string
@@ -76,7 +79,7 @@ export class CryptoMetamask {
     // Once again application must have acces to the account
 
     //@ts-ignore
-    const decrypt = await window.ethereum.request({
+    const decrypt = await this.RPC.request({
       method: "eth_decrypt",
       params: [ct, this.ACCOUNT],
     })
@@ -88,14 +91,14 @@ export class CryptoMetamask {
 /**
  * A utility class that uses your local public and private keys. If no key is provided to the constructor, a new one is generated.
  */
-export class CryptoLocal {
+export class CryptoChat {
   private sk: PrivateKey
 
-  constructor(secret?: Buffer) {
-    if (secret == undefined) {
-      // Generate a new secret
-      secret = randomBytes(32)
-    }
+  static generateSecret(): Buffer {
+    return randomBytes(32)
+  }
+
+  constructor(secret: Buffer) {
     this.sk = new PrivateKey(secret)
   }
 
