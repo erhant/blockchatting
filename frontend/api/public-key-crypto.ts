@@ -4,8 +4,8 @@
  * See https://ecies.org/js/
  */
 import { randomBytes } from "crypto"
-import secp256k1 from "secp256k1"
-import { encrypt } from "@metamask/eth-sig-util"
+import { encrypt as encryptMM } from "@metamask/eth-sig-util"
+import { encrypt as encryptEC, decrypt as decryptEC, PrivateKey } from "eciesjs"
 const ascii85 = require("ascii85")
 
 /**
@@ -22,8 +22,9 @@ export class CryptoMetamask {
   /**
    * Encrypts a given data with the public key of EOA.
    */
-  async encryptEOA(data: Buffer): Promise<Buffer> {
+  async encrypt(data: Buffer): Promise<Buffer> {
     // Public Key
+    //@ts-ignore
     const keyB64: string = (await window.ethereum.request({
       method: "eth_getEncryptionPublicKey",
       params: [this.ACCOUNT],
@@ -32,7 +33,7 @@ export class CryptoMetamask {
 
     // Returned object contains 4 properties: version, ephemPublicKey, nonce, ciphertext
     // Each contains data encoded using base64, version is always the same string
-    const enc = encrypt({
+    const enc = encryptMM({
       publicKey: publicKey.toString("base64"),
       data: ascii85.encode(data).toString(),
       version: this.SCHEME_VERSION,
@@ -61,7 +62,7 @@ export class CryptoMetamask {
   /**
    * Decrypts a given data with the private key of EOA.
    */
-  async decryptEOA(data: Buffer): Promise<Buffer> {
+  async decrypt(data: Buffer): Promise<Buffer> {
     // Reconstructing the original object outputed by encryption
     const structuredData = {
       version: this.SCHEME_VERSION,
@@ -73,6 +74,8 @@ export class CryptoMetamask {
     const ct = `0x${Buffer.from(JSON.stringify(structuredData), "utf8").toString("hex")}`
     // Send request to MetaMask to decrypt the ciphertext
     // Once again application must have acces to the account
+
+    //@ts-ignore
     const decrypt = await window.ethereum.request({
       method: "eth_decrypt",
       params: [ct, this.ACCOUNT],
@@ -85,4 +88,26 @@ export class CryptoMetamask {
 /**
  * A utility class that uses your local public and private keys. If no key is provided to the constructor, a new one is generated.
  */
-export class CryptoLocal {}
+export class CryptoLocal {
+  private sk: PrivateKey
+
+  constructor(secret?: Buffer) {
+    if (secret == undefined) {
+      // Generate a new secret
+      secret = randomBytes(32)
+    }
+    this.sk = new PrivateKey(secret)
+  }
+
+  encrypt(publicKey: string, data: Buffer): Buffer {
+    return encryptEC(publicKey, data)
+  }
+
+  decrypt(data: Buffer): Buffer {
+    return decryptEC(this.sk.toHex(), data)
+  }
+
+  getPublicKey(): string {
+    return this.sk.publicKey.toHex()
+  }
+}
