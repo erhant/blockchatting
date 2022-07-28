@@ -73,3 +73,7 @@ Normally, messaging is done via addresses but users can buy Aliases too. The `pr
 4. Alice is paid back `1` ether from her first purchase.
 
 The refunds are done via [PullPayment](https://docs.openzeppelin.com/contracts/2.x/api/payment#PullPayment). Note that Alice can also refund **cats** to get back her `1` ether; but the `fee` stays with the contract.
+
+## TODO
+
+- Add friends list to local storage.

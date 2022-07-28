@@ -13,13 +13,20 @@ const ascii85 = require("ascii85")
  * A utility class that uses MetaMask RPC api to use public key cryptography of your EOA.
  */
 export class CryptoEOA {
-  SCHEME_VERSION: Readonly<string> = "x25519-xsalsa20-poly1305"
-  ACCOUNT: Readonly<string> = ""
-  RPC: any
+  private SCHEME_VERSION: Readonly<string> = "x25519-xsalsa20-poly1305"
+  private ACCOUNT: Readonly<string> = ""
+  private RPC: any
 
-  constructor(account: string, rpc: any = window.ethereum) {
+  constructor(account: string, rpc: any) {
     this.ACCOUNT = account
-    this.RPC = rpc
+    this.RPC = rpc // e.g. window.ethereum or network.provider
+  }
+
+  /**
+   * Wrapper for `encrypt`, converts the string to buffer with utf-8 format
+   */
+  async encryptString(str: string): Promise<Buffer> {
+    return this.encrypt(Buffer.from(str, "utf-8"))
   }
 
   /**
@@ -98,16 +105,20 @@ export class CryptoChat {
     return randomBytes(32)
   }
 
+  static encrypt(publicKey: string, data: Buffer): Buffer {
+    return encryptEC(publicKey, data)
+  }
+
   constructor(secret: Buffer) {
     this.sk = new PrivateKey(secret)
   }
 
-  encrypt(publicKey: string, data: Buffer): Buffer {
-    return encryptEC(publicKey, data)
-  }
-
   decrypt(data: Buffer): Buffer {
     return decryptEC(this.sk.toHex(), data)
+  }
+
+  encrypt(data: Buffer): Buffer {
+    return CryptoChat.encrypt(this.getPublicKey(), data)
   }
 
   getPublicKey(): string {

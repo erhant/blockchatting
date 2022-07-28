@@ -40,6 +40,7 @@ contract Chat is Ownable, PullPayment {
 
   /// @notice Purchase an alias
   /// @dev A user can buy an alias from themselves. This in effect increases the price.
+  /// @custom:todo allow only one alias per user?
   function purchaseAlias(bytes32 _alias) external payable onlyKeyProvided {
     // get previous info
     uint256 lastPrice = aliasPrice[_alias];
@@ -99,6 +100,11 @@ contract Chat is Ownable, PullPayment {
   function withdraw() external onlyOwner {
     payable(owner()).transfer(treasury);
     treasury == 0;
+  }
+
+  /// @notice Get the treasury value
+  function getTreasury() external view onlyOwner returns(uint256) {
+    return treasury;
   }
 
   receive() external payable {}

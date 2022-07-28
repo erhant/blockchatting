@@ -7,3 +7,4 @@ Things that may be helpful:
 - [Mantine Notifications](https://mantine.dev/others/notifications/)
 - [Mantine Themes](https://mantine.dev/theming/mantine-provider/)
 - [MetaMask & Hardhat](https://www.web3.university/article/how-to-build-a-react-dapp-with-hardhat-and-metamask)
+- [Mocha Testing](https://stackoverflow.com/a/23643262)
