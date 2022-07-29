@@ -9,16 +9,16 @@ import "@openzeppelin/contracts/security/PullPayment.sol";
 /// @notice For education purposes only.
 /// @dev A chat contract that allows users to send messages via their addresses.
 contract Chat is Ownable, PullPayment {
-  /// @dev MessageSent event is emitted when `from` sends `text` to `to`.
-  event MessageSent(address indexed _from, address indexed _to, string _text);
+  /// @notice Messages sent are stored as event logs. The sender and recipient are both indexed.
+  /// @dev _message is expected to be encrypted by _to's public key.
+  event MessageSent(address indexed _from, address indexed _to, string _message);
 
-  /// @notice Mapping from addresses to public keys
-  mapping(address => bool) public publicKeyPrefix; // true: 0x02, false: 0x03
-  mapping(address => bytes32) public publicKey; // X coordinate of public key
-  mapping(address => bytes32) public secrets; // Encrypted secrets for chatting keypair
-
-  /// @notice Number of users who have used the application
-  uint256 public userCount = 0;
+  /// @notice An initialization event holds the encrypted secret, public key prefix (true: 0x02, false: 0x03) and the 32-byte
+  /// elliptic curve point X coordinate.
+  /// @dev This is emitted only once.
+  event UserInitialized(address indexed _user, bytes32 _encSecret, bool _pubKeyPrefix, bytes32 _pubKeyX);
+  uint256 public initializedCount = 0;
+  mapping(address => bool) public isInitialized;
 
   /// @notice Address ~ Alias resolution and prices
   mapping(address => bytes32) public addressToAlias;
@@ -28,24 +28,24 @@ contract Chat is Ownable, PullPayment {
   uint256 private treasury = 0;
 
   /// @notice Allow users to interact only if they have provided public key
-  modifier onlyKeyProvided() {
-    require(publicKey[msg.sender] != 0, "User did not provide public key.");
+  modifier onlyInitialized() {
+    require(isInitialized[msg.sender], "User was not initialized.");
     _;
   }
 
   /// @notice Emits a MessageSent event, as a form of storage.
-  function sendMessage(string calldata _text, address _to) external onlyKeyProvided {
+  function sendMessage(string calldata _text, address _to) external onlyInitialized {
     emit MessageSent(msg.sender, _to, _text);
   }
 
   /// @notice Purchase an alias
   /// @dev A user can buy an alias from themselves. This in effect increases the price.
   /// @custom:todo allow only one alias per user?
-  function purchaseAlias(bytes32 _alias) external payable onlyKeyProvided {
+  function purchaseAlias(bytes32 _alias) external payable onlyInitialized {
     // get previous info
     uint256 lastPrice = aliasPrice[_alias];
     address lastOwner = aliasToAddress[_alias];
-    require(msg.value >= aliasFee + lastPrice, "Insufficient ether");
+    require(msg.value >= aliasFee + lastPrice, "Insufficient ether.");
     treasury += aliasFee;
 
     // update alias info
@@ -60,11 +60,11 @@ contract Chat is Ownable, PullPayment {
   }
 
   /// @notice Release an alias, user gets repaid their paid amount
-  function refundAlias(bytes32 _alias) external onlyKeyProvided {
+  function refundAlias(bytes32 _alias) external onlyInitialized {
     // get previous info
     address lastOwner = aliasToAddress[_alias];
     uint256 lastPrice = aliasPrice[_alias];
-    require(lastOwner == msg.sender, "You do not own this alias");
+    require(lastOwner == msg.sender, "You do not own this alias.");
 
     // update alias info
     aliasPrice[_alias] = 0;
@@ -81,13 +81,13 @@ contract Chat is Ownable, PullPayment {
   /// @notice User provides their public key and encrypted secret to start using the application
   function initialize(
     bytes32 encryptedSecret,
-    bytes32 pubKey,
-    bool prefix
+    bool pubKeyPrefix,
+    bytes32 pubKeyX
   ) external {
-    require(publicKey[msg.sender] == 0, "You are already initialized.");
-    secrets[msg.sender] = encryptedSecret;
-    publicKey[msg.sender] = pubKey;
-    publicKeyPrefix[msg.sender] = prefix; // 0x02 (true) or 0x03 (false)
+    require(!isInitialized[msg.sender], "User already initialized.");
+    isInitialized[msg.sender] = true;
+    initializedCount++;
+    emit UserInitialized(msg.sender, encryptedSecret, pubKeyPrefix, pubKeyX);
   }
 
   /// @notice Change the alias base fee.
