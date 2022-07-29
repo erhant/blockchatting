@@ -9,12 +9,14 @@ import { expectEvent } from "../utilities/testing"
 import { CryptoChat, CryptoEOA } from "../../frontend/api/public-key-crypto"
 import { randomBytes } from "crypto"
 import { formatEther, parseEther } from "ethers/lib/utils"
+import { BigNumber, ContractTransaction } from "ethers"
 
 chai.use(chaiAsPromised)
 const { expect } = chai
 
 describe(contractConstants.Chat.contractName, function() {
   let chatContract: Chat
+  let tx: ContractTransaction
 
   // signers
   let owner: SignerWithAddress
@@ -28,72 +30,113 @@ describe(contractConstants.Chat.contractName, function() {
     ;[owner, alice, bob, ...addrs] = await ethers.getSigners()
     chatContract = await factory.deploy()
     await chatContract.deployed()
+
+    // Alice generates her keys
+    const aliceSecret = CryptoChat.generateSecret()
+    const alicePubkey = Buffer.from(new CryptoChat(aliceSecret).getPublicKey(), "hex")
+
+    tx = await chatContract.connect(alice).initialize(
+      aliceSecret.toJSON().data, // this is supposed to be encrypted, but we dont do it in the test
+      alicePubkey.at(0) == 2, // prefix
+      alicePubkey.slice(1).toJSON().data // 32 bytes
+    )
+
+    // // Bob generates his keys
+    const bobSecret = CryptoChat.generateSecret()
+    const bobPubkey = Buffer.from(new CryptoChat(bobSecret).getPublicKey(), "hex")
+
+    await chatContract.connect(bob).initialize(
+      bobSecret.toJSON().data, // this is supposed to be encrypted, but we dont do it in the test
+      bobPubkey.at(0) == 2, // prefix
+      bobPubkey.slice(1).toJSON().data // 32 bytes
+    )
   })
 
   describe("aliasing", function() {
-    it("owner should be able to change alias fee", async function() {
-      const fee = parseEther("1.23") // ether
-      await chatContract.connect(owner).changeAliasBaseFee(fee)
-      expect((await chatContract.aliasFee()).eq(fee)).to.be.true
+    const alias = "Hello there"
+    const aliasBytes = ethers.utils.zeroPad(Buffer.from(alias), 32)
+
+    it("should allow alice to buy an alias", async function() {
+      const fee = await chatContract.aliasFee()
+      await chatContract.connect(alice).purchaseAlias(aliasBytes, { value: fee })
+      let [aliasOwner, aliasPrice, addressAlias] = await Promise.all([
+        chatContract.aliasToAddress(aliasBytes),
+        chatContract.aliasPrice(aliasBytes),
+        chatContract.addressToAlias(alice.address),
+      ])
+      expect(aliasOwner).eq(alice.address)
+      expect(aliasPrice.eq(0)).to.be.true
+      expect(Uint8Array.from(Buffer.from(addressAlias.slice(2), "hex"))).to.deep.eq(aliasBytes)
+    })
+
+    it("should allow bob to buy alice's alias for higher price", async function() {
+      const fee = await chatContract.aliasFee()
+      await chatContract.connect(bob).purchaseAlias(aliasBytes, { value: fee.add(parseEther("0.001")) })
+      let [aliasOwner, aliasPrice, addressAlias] = await Promise.all([
+        chatContract.aliasToAddress(aliasBytes),
+        chatContract.aliasPrice(aliasBytes),
+        chatContract.addressToAlias(bob.address),
+      ])
+      expect(aliasOwner).eq(bob.address)
+      expect(aliasPrice.eq(parseEther("0.001"))).to.be.true
+      expect(Uint8Array.from(Buffer.from(addressAlias.slice(2), "hex"))).to.deep.eq(aliasBytes)
+    })
+
+    it("should allow bob to refund", async function() {
+      const prev_bobBalance = await bob.getBalance()
+      const prev_aliasPrice = await chatContract.aliasPrice(aliasBytes)
+
+      // bob makes a refund
+      await chatContract.connect(bob).refundAlias(aliasBytes)
+      expect(await chatContract.payments(bob.address)).to.eq(prev_aliasPrice)
+      await chatContract.connect(bob).withdrawPayments(bob.address)
+
+      let [aliasOwner, aliasPrice, addressAlias, bobBalance] = await Promise.all([
+        chatContract.aliasToAddress(aliasBytes),
+        chatContract.aliasPrice(aliasBytes),
+        chatContract.addressToAlias(bob.address),
+        bob.getBalance(),
+      ])
+      expect(aliasOwner).eq(ethers.utils.hexZeroPad([], 20))
+      expect(aliasPrice.eq(BigNumber.from(0))).to.be.true
+      expect(Uint8Array.from(Buffer.from(addressAlias.slice(2), "hex"))).to.deep.eq(
+        ethers.utils.zeroPad(Buffer.from(""), 32)
+      )
+      expect(bobBalance.gt(prev_bobBalance)).to.be.true
+    })
+
+    it("should allow owner to change alias fee", async function() {
+      const newFee = parseEther("1.23") // ether
+      await chatContract.connect(owner).changeAliasBaseFee(newFee)
+      expect((await chatContract.aliasFee()).eq(newFee)).to.be.true
     })
   })
 
   describe("messaging", function() {
-    // We cant test metamask rpc with hardhat, hardhat's provider does not support
-    // eth_getEncryptionPublicKey and eth_decrypt; so we assume secret key is retrieved
-
-    before(async function() {
-      // Alice generates her keys
-      const aliceSecret = CryptoChat.generateSecret()
-      const alicePubkey = Buffer.from(new CryptoChat(aliceSecret).getPublicKey(), "hex")
-
-      await chatContract.connect(alice).initialize(
-        aliceSecret.toJSON().data, // this is supposed to be encrypted, but we dont do it in the test
-        alicePubkey.at(0) == 2, // prefix
-        alicePubkey.slice(1).toJSON().data // 32 bytes
-      )
-
-      // // Bob generates his keys
-      const bobSecret = CryptoChat.generateSecret()
-      const bobPubkey = Buffer.from(new CryptoChat(bobSecret).getPublicKey(), "hex")
-      //console.log("KEY BEFORE", bobPubkey.toString("hex"))
-
-      await chatContract.connect(bob).initialize(
-        bobSecret.toJSON().data, // this is supposed to be encrypted, but we dont do it in the test
-        bobPubkey.at(0) == 2, // prefix
-        bobPubkey.slice(1).toJSON().data // 32 bytes
-      )
-      console.log("BOB SEC 1:", bobSecret.toString("hex"))
-      //console.log("BOB BEFORE", bobPubkey.at(0) == 2, bobPubkey.slice(1).toString("hex"))
-    })
-
     it("should encrypt & decrypt correctly", async function() {
       const message = randomBytes(32)
 
+      // alice and bob both query bob's initialization event
       const bobInitEvent = (await chatContract.queryFilter(chatContract.filters.UserInitialized(bob.address)))[0].args
 
       // alice will send the message to bob
-      // so she gets his public key first
+      // so she encrypts her message with his key
       let [bobPubkeyPrefix, bobPubkeyX, bobSecretHex] = [
         bobInitEvent._pubKeyPrefix ? "02" : "03",
         bobInitEvent._pubKeyX.slice(2), // omit 0x
         bobInitEvent._encSecret.slice(2), // omit 0x
       ]
-
-      console.log("BOB SEC 2:", bobSecretHex)
       const bobPubkey = Buffer.from(bobPubkeyPrefix + bobPubkeyX, "hex")
-
-      // now alice will encrypt her message with bobs key
       const ciphertext = CryptoChat.encrypt(bobPubkey.toString("hex"), message)
 
       // alice sends the encrypted message
-      const tx = await chatContract.connect(alice).sendMessage(ciphertext.toString("hex"), bob.address)
+      tx = await chatContract.connect(alice).sendMessage(ciphertext.toString("hex"), bob.address)
       expectEvent(await tx.wait(), "MessageSent", r => {
         let [_from, _to, _message] = [r._from, r._to, r._message]
         expect(_from).eq(alice.address)
         expect(_to).eq(bob.address)
 
-        // bob will decrypt
+        // bob will decrypt by creating the key pair with his secret
         const ciphertext = Buffer.from(_message, "hex")
         const bobCryptoChat = new CryptoChat(Buffer.from(bobSecretHex, "hex"))
         const plaintext = bobCryptoChat.decrypt(ciphertext)
