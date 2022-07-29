@@ -52,6 +52,17 @@ describe(contractConstants.Chat.contractName, function() {
     )
   })
 
+  describe("deployment", function() {
+    it("should have alice and bob initialized", async function() {
+      expect(await chatContract.isInitialized(alice.address)).to.be.true
+      expect(await chatContract.isInitialized(bob.address)).to.be.true
+    })
+
+    it("should have owner as owner", async function() {
+      expect(await chatContract.owner()).to.eq(owner.address)
+    })
+  })
+
   describe("aliasing", function() {
     const alias = "Hello there"
     const aliasBytes = ethers.utils.zeroPad(Buffer.from(alias), 32)
