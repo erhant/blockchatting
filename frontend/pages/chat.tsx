@@ -32,7 +32,7 @@ const CounterContractPage: NextPage = () => {
     }
   }, [wallet])
 
-  // on contract load
+  // on contract load, get the messages and subscribe to events
   useEffect(() => {
     if (contract == undefined) return
 

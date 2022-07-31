@@ -8,6 +8,7 @@ import yourMantineTheme from "../themes/mantine"
 import { MantineProvider, ColorScheme, ColorSchemeProvider } from "@mantine/core"
 import { WalletContextWrapper } from "../context/wallet.context"
 import { NotificationsProvider } from "@mantine/notifications"
+import { ChatContextWrapper } from "../context/chat.context"
 
 export default function App(props: AppProps & { colorScheme: ColorScheme }) {
   const { Component, pageProps } = props
@@ -38,9 +39,11 @@ export default function App(props: AppProps & { colorScheme: ColorScheme }) {
           }}
         >
           <WalletContextWrapper>
-            <NotificationsProvider>
-              <Component {...pageProps} />
-            </NotificationsProvider>
+            <ChatContextWrapper>
+              <NotificationsProvider>
+                <Component {...pageProps} />
+              </NotificationsProvider>
+            </ChatContextWrapper>
           </WalletContextWrapper>
         </MantineProvider>
       </ColorSchemeProvider>
