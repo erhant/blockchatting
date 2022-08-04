@@ -3,23 +3,13 @@
   "version": "0.0.3",
   "description": "",
   "scripts": {
-    "build": "npm run clean && npm run compile",
+    "build": "npm run clean && npm run compile && ./batches/duplicate-types.sh",
     "clean": "npx hardhat clean",
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
     "coverage": "npm run build && npx hardhat coverage --temp artifacts --network coverage",
     "postinstall": "npm run compile"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/rhlsthrm/solidity-ts-dev-stack-example.git"
-  },
-  "author": "rhlsthrm",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/rhlsthrm/solidity-ts-dev-stack-example/issues"
-  },
-  "homepage": "https://github.com/rhlsthrm/solidity-ts-dev-stack-example#readme",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.1.0",
     "@nomiclabs/hardhat-etherscan": "^3.1.0",

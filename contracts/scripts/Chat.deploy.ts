@@ -1,7 +1,7 @@
 import { ethers } from "hardhat"
 //@ts-ignore // the objects here are created by typechain
-import { Chat__factory, Chat } from "../../frontend/types/typechain"
-import contractConstants from "../../frontend/constants/contractConstants"
+import { Chat__factory, Chat } from "../types/typechain"
+import contractConstants from "../constants/contract"
 
 export default async function main(): Promise<string> {
   console.log(`\n[${contractConstants.Chat.contractName} Contract]`)

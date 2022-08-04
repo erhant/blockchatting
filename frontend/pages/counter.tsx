@@ -6,8 +6,8 @@ import Layout from "../components/layout"
 import { Button, Text, Group, Title, Box } from "@mantine/core"
 import { notify, notifyError, notifyTransaction, notifyTransactionUpdate } from "../utils/notify"
 import { ArrowUpCircle, ArrowDownCircle, Refresh } from "tabler-icons-react"
-import getContractAddress from "../constants/contractAddresses"
-import contractConstants from "../constants/contractConstants"
+import getContractAddress from "../constants/addresses"
+import contractConstants from "../../contracts/constants/contract"
 import { truncateAddress } from "../utils/utility"
 
 const CounterContractPage: NextPage = () => {

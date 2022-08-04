@@ -2,8 +2,8 @@ import { useWalletContext } from "../context/wallet.context"
 import { Chat__factory, Chat as ChatContract } from "../types/typechain/"
 import { createContext, FC, ReactNode, useContext, useEffect, useState } from "react"
 import { notify, notifyError } from "../utils/notify"
-import getContractAddress from "../constants/contractAddresses"
-import contractConstants from "../constants/contractConstants"
+import getContractAddress from "../constants/addresses"
+import contractConstants from "../constants/contract"
 import { truncateAddress } from "../utils/utility"
 
 const ChatContext = createContext<{ contract: ChatContract | undefined }>({ contract: undefined })

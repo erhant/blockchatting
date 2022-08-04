@@ -1,5 +1,5 @@
 import { ethers } from "ethers"
-import contractConstants from "./contractConstants"
+import contractConstants from "../constants/contract"
 
 /**
  * Contract addresses for each ChainID. These can also be read from .env

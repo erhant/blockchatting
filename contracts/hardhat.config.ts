@@ -19,11 +19,11 @@ const config: HardhatUserConfig & {
 } = {
   defaultNetwork: "hardhat",
   solidity: {
-    compilers: [{ version: "0.8.5", settings: {} }],
+    compilers: [{ version: "0.8.9", settings: {} }],
   },
   // redirect typechain output for the frontend
   typechain: {
-    outDir: "../frontend/types/typechain",
+    outDir: "./types/typechain",
   },
   networks: {
     hardhat: {},

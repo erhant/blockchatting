@@ -1,7 +1,7 @@
-node_modules/
-cache/
-build/
-typechain/
-artifacts/
+node_modules
+cache
+build
+typechain
+artifacts
 coverage*
 .env

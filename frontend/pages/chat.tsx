@@ -1,36 +1,19 @@
 import { NextPage } from "next"
 import { useWalletContext } from "../context/wallet.context"
-import { Chat__factory, Counter as ChatContract } from "../types/typechain/"
+import { Chat__factory, Chat as ChatContract } from "../types/typechain/"
 import { useEffect, useState } from "react"
 import Layout from "../components/layout"
 import { Button, Text, Group, Title, Box } from "@mantine/core"
 import { notify, notifyError, notifyTransaction, notifyTransactionUpdate } from "../utils/notify"
 import { ArrowUpCircle, ArrowDownCircle, Refresh } from "tabler-icons-react"
-import getContractAddress from "../constants/contractAddresses"
-import contractConstants from "../constants/contractConstants"
 import { truncateAddress } from "../utils/utility"
+import { useChatContext } from "../context/chat.context"
 
 const CounterContractPage: NextPage = () => {
   const { wallet } = useWalletContext()
-  const [contract, setContract] = useState<ChatContract>()
+  const { contract } = useChatContext()
   // contract view states
   const [count, setCount] = useState(0)
-
-  useEffect(() => {
-    if (wallet) {
-      try {
-        const contractAddress = getContractAddress(contractConstants.Chat.contractName, wallet.chainId)
-        notify("Contract Connected", "Connected to " + truncateAddress(contractAddress), "success")
-        setContract(Chat__factory.connect(contractAddress, wallet.library.getSigner(wallet.address)))
-      } catch (e: any) {
-        notifyError(e, "Contract Not Found", false)
-      }
-    }
-
-    return () => {
-      setContract(undefined)
-    }
-  }, [wallet])
 
   // on contract load, get the messages and subscribe to events
   useEffect(() => {
