@@ -2,10 +2,6 @@
 
 **A decentralized chatting application where each message is a transaction**.
 
-Obviously made for educational purposes, the gas fees are too high and notably unreasonable to be used for chatting. It uses the Rinkeby test network. Note that the messages themselves can be read in the transaction details on etherscan.
-
-Contract address: [0x2304BBd56A0fBCBDb417522fA8fB2EAdCf64E3E4](https://rinkeby.etherscan.io/address/0x2304BBd56A0fBCBDb417522fA8fB2EAdCf64E3E4)
-
 ## Peer-to-Peer Chatting
 
 Although a [deprecated functionality of MetaMask](https://medium.com/metamask/metamask-api-method-deprecation-2b0564a84686), this application uses [`eth_decrypt`](https://docs.metamask.io/guide/rpc-api.html#eth-decrypt-deprecated) and [`eth_getEncryptionPublicKey`](https://docs.metamask.io/guide/rpc-api.html#eth-getencryptionpublickey-deprecated) to use asymmetric encryption for the messages. ([see also](https://betterprogramming.pub/exchanging-encrypted-data-on-blockchain-using-metamask-a2e65a9a896c))
@@ -74,6 +70,12 @@ Normally, messaging is done via addresses but users can buy Aliases too. The `pr
 
 The refunds are done via [PullPayment](https://docs.openzeppelin.com/contracts/2.x/api/payment#PullPayment). Note that Alice can also refund **cats** to get back her `1` ether; but the `fee` stays with the contract.
 
-## TODO
+## Fees
 
-- Add friends list to local storage.
+As written above, a fee is taken from each alias purchase
+
+## Friends
+
+You can store some friends in your local storage.
+
+**TODO**: Store friends on-chain (via events), and make them be encrypted by user's pubkey.

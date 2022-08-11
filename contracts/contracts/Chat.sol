@@ -15,10 +15,13 @@ contract Chat is Ownable, PullPayment {
 
   /// @notice An initialization event holds the encrypted secret, public key prefix (true: 0x02, false: 0x03) and the 32-byte
   /// elliptic curve point X coordinate.
+  /// With this public key, users aggree on a symmetric key
+  /// This key is later used to encrypt messages.
   /// @dev This is emitted only once.
   event UserInitialized(address indexed _user, bytes32 _encSecret, bool _pubKeyPrefix, bytes32 _pubKeyX);
   uint256 public initializedCount = 0;
   mapping(address => bool) public isInitialized;
+  mapping(address => mapping(address => bytes32)) public symmetries;
 
   /// @notice Address ~ Alias resolution and prices
   mapping(address => bytes32) public addressToAlias;
@@ -26,6 +29,17 @@ contract Chat is Ownable, PullPayment {
   mapping(bytes32 => uint256) public aliasPrice;
   uint256 public aliasFee = 0.0075 ether;
   uint256 private treasury = 0;
+  
+  constructor() {
+    address myAddress = address(this);
+    bytes32 myAlias = bytes32("Blockchattin");
+    isInitialized[myAddress] = true;
+    addressToAlias[myAddress] = myAlias;
+    aliasToAddress[myAlias] = myAddress;
+    aliasPrice[myAlias] = type(uint256).max;
+
+  }
+
 
   /// @notice Allow users to interact only if they have provided public key
   modifier onlyInitialized() {

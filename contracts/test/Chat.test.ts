@@ -2,9 +2,9 @@ import { ethers, network } from "hardhat"
 import chai, { should } from "chai"
 import chaiAsPromised from "chai-as-promised"
 //@ts-ignore // the objects here are created by typechain
-import { Chat__factory, Chat } from "../../frontend/types/typechain"
+import { Chat__factory, Chat } from "../types/typechain"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
-import contractConstants from "../../frontend/constants/contractConstants"
+import contractConstants from "../constants/contract"
 import { expectEvent } from "../utilities/testing"
 import { CryptoChat, CryptoEOA } from "../../frontend/api/public-key-crypto"
 import { randomBytes } from "crypto"
@@ -132,7 +132,7 @@ describe(contractConstants.Chat.contractName, function() {
 
       // alice will send the message to bob
       // so she encrypts her message with his key
-      let [bobPubkeyPrefix, bobPubkeyX, bobSecretHex] = [
+      const [bobPubkeyPrefix, bobPubkeyX, bobSecretHex] = [
         bobInitEvent._pubKeyPrefix ? "02" : "03",
         bobInitEvent._pubKeyX.slice(2), // omit 0x
         bobInitEvent._encSecret.slice(2), // omit 0x
