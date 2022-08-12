@@ -15,15 +15,15 @@ const CounterContractPage: NextPage = () => {
   const { contract } = useChatContext()
   const [messages, setMessages] = useState([])
 
-  const me = wallet?.address
+  const me = wallet?.address || ""
   const [peer, setPeer] = useState<string>()
 
   // on contract load, get the messages and subscribe to events
   useEffect(() => {
     if (!contract) return
 
-    // everyone sees contract as the first peer
-    setPeer(contract.address)
+    // everyone sees contract owner as the first peer
+    contract.owner().then((o) => setPeer(o))
 
     // TODO: get aliases of friends in your friendlist
     return () => {

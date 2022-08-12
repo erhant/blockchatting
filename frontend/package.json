@@ -13,6 +13,7 @@
     "@mantine/next": "^4.2.0",
     "@mantine/notifications": "^4.2.0",
     "@metamask/eth-sig-util": "^4.0.1",
+    "aes256": "^1.1.0",
     "ascii85": "^1.0.2",
     "eciesjs": "^0.3.15",
     "ethers": "^5.6.4",

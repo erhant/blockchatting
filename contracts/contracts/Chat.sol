@@ -29,17 +29,16 @@ contract Chat is Ownable, PullPayment {
   mapping(bytes32 => uint256) public aliasPrice;
   uint256 public aliasFee = 0.0075 ether;
   uint256 private treasury = 0;
-  
+
   constructor() {
-    address myAddress = address(this);
-    bytes32 myAlias = bytes32("Blockchattin");
+    // owner has his own alias by default
+    address myAddress = owner();
+    bytes32 myAlias = bytes32("erhant");
     isInitialized[myAddress] = true;
     addressToAlias[myAddress] = myAlias;
     aliasToAddress[myAlias] = myAddress;
     aliasPrice[myAlias] = type(uint256).max;
-
   }
-
 
   /// @notice Allow users to interact only if they have provided public key
   modifier onlyInitialized() {
@@ -49,6 +48,10 @@ contract Chat is Ownable, PullPayment {
 
   /// @notice Emits a MessageSent event, as a form of storage.
   function sendMessage(string calldata _text, address _to) external onlyInitialized {
+    require(
+      (symmetries[msg.sender][_to] == symmetries[_to][msg.sender]) && symmetries[msg.sender][_to] != bytes32(0),
+      "No symmetry setup yet."
+    );
     emit MessageSent(msg.sender, _to, _text);
   }
 
@@ -117,7 +120,7 @@ contract Chat is Ownable, PullPayment {
   }
 
   /// @notice Get the treasury value
-  function getTreasury() external view onlyOwner returns(uint256) {
+  function getTreasury() external view onlyOwner returns (uint256) {
     return treasury;
   }
 

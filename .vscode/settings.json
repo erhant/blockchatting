@@ -13,7 +13,7 @@
   },
   "emmet.showExpandedAbbreviation": "never",
   "[solidity]": {
-    "editor.defaultFormatter": "JuanBlanco.solidity"
+    "editor.defaultFormatter": "NomicFoundation.hardhat-solidity"
   },
   "solidity.defaultCompiler": "localFile",
   "solidity.packageDefaultDependenciesDirectory": "./contracts/node_modules"
