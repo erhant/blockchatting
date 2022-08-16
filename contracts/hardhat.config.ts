@@ -3,10 +3,19 @@ dotEnvConfig()
 
 import type { HardhatUserConfig } from "hardhat/types"
 
-import "@nomiclabs/hardhat-waffle"
-import "@typechain/hardhat"
+// hardhat stuff
+import "@nomiclabs/hardhat-ethers"
 import "@nomiclabs/hardhat-etherscan"
-import "@nomiclabs/hardhat-solhint";
+import "@nomiclabs/hardhat-solhint"
+import "@nomicfoundation/hardhat-chai-matchers"
+
+// generate typings
+import "@typechain/hardhat"
+
+// gas reporing
+import "hardhat-gas-reporter"
+
+// test coverage
 import "solidity-coverage"
 
 const RINKEBY_INFURA_PROJECT_ID = process.env.RINKEBY_INFURA_PROJECT_ID || ""
