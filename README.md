@@ -1,3 +1,5 @@
+<img src="./img/blockchattin.svg" alt="logo">
+
 # Blockchattin
 
 **A decentralized chatting application where each message is a transaction**.
