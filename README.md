@@ -1,4 +1,6 @@
-<img src="./img/blockchattin.svg" alt="logo">
+<p align="center">
+  <img src="./img/blockchattin.svg" alt="logo" width="200">
+</p>
 
 # Blockchattin
 
@@ -53,12 +55,6 @@ sequenceDiagram
   Contract ->> Alice: bob-pk_chat, alice-pk_chat
   Alice ->> Contract: chatkeys[Alice][Bob] = encrypt(sk_alice_bob, alice-pk_chat)
   Alice ->> Contract: chatkeys[Bob][Alice] = encrypt(sk_alice_bob, bob-pk_chat)
-
-
-  Note over Alice, Bob:
-  Note over Alice: c = encrypt(pk_bob, m)
-  Alice ->> Bob: c
-  Note over Bob: m = decrypt(sk_bob, c)
 ```
 
 When Alice and Bob talk to eachother, they will encrypt the messages with this secret key.
