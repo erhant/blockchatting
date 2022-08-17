@@ -34,9 +34,16 @@ const config: HardhatUserConfig & {
   typechain: {
     outDir: "./types/typechain",
   },
+  gasReporter: {
+    enabled: false,
+  },
   networks: {
     hardhat: {},
-    localhost: {},
+    localsubnet: {
+      url: "http://127.0.0.1:9656/ext/bc/XqhB3v8RojT6JkpofFcDRiACdzSCiiTzo2zWqhhUu4FJ6N53A/rpc",
+      chainId: 191192,
+      accounts: ["0x56289e99c94b6912bfc12adc093c9b51124f0dc54ac7a766b2bc5ccf558d8027"],
+    },
     rinkeby: {
       url: `https://rinkeby.infura.io/v3/${RINKEBY_INFURA_PROJECT_ID}`,
       accounts: [RINKEBY_PRIVATE_KEY],

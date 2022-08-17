@@ -11,11 +11,11 @@ There are two drawbacks to these functions:
 1. `eth_decrypt` and `eth_getEncryptionPublicKey` asks for user input everytime it is called.
 2. Encryption is done for UTF-8 only.
 
-So, EOA keypair will not be used for chatting per se. Instead, the user will generate a random 32-byte secret which will then be used to generate a key-pair to be used in chatting only. On first use, the user will encrypt this secret with their own EOA public key (via MetaMask RPC). We use [eciejs](https://ecies.org/js/) for this.
+So, EOA keypair will not be used for chatting per se. Instead, the user will generate a public-private key pair and store . On first use, the user will encrypt this secret with their own EOA public key (via MetaMask RPC). We use [eciejs](https://ecies.org/js/) for this.
 
-### Initial Setup
+### Initialization (Asymmetric)
 
-The first time a user starts the application a keypair is generated to be used for chatting alone, and the secret to generate this keypair is encrypted with EOA public key. These are stored in the smart contract:
+The first time a user starts the application a key-pair is generated to be used for chatting alone, and the secret to generate this keypair is encrypted with EOA public key. These are stored in the smart contract:
 
 ```mermaid
 sequenceDiagram
@@ -24,40 +24,61 @@ sequenceDiagram
 
   Note over Alice: pk_eoa := eth_getEncryptionPublicKey(Alice)
   Note over Alice: s := randomBytes(32)
-  Note over Alice: sk, pk := keygen(s)
-  Note over Alice: c_s := encrypt_metamask(pk_eoa, s)
+  Note over Alice: sk_chat, pk_chat := keygen(s)
+  Note over Alice: sk_chat_enc := encrypt_metamask(pk_eoa, sk_chat)
 
-  Alice ->> Contract: c_s, pk
+  Alice ->> Contract: sk_chat_enc, pk_chat
+
+  Note over Alice, Contract: Some time later...
+
+  Contract ->> Alice: sk_chat_enc
+  Note over Alice: sk_chat := decrypt_metamask(sk_eoa, sk_chat_enc)
+
 ```
 
-On later launches, the secret is queried from the contract and that same keypair is generated:
+We use [Elliptic Curve Integrated Encryption Scheme for secp256k1](https://ecies.org/js/) for this.
+
+### Messaging
+
+As we have shown above, the users provide their chatting public key at first setup. When two users chat for the first time, the initiator will generate a random 32-byte key, and store this in the contract both with it's own public key and the recipient's public key.
 
 ```mermaid
 sequenceDiagram
   actor Alice
   actor Contract
 
-  Contract ->> Alice: c_s
+  Note over Alice: sk_alice_bob = randomBytes(32)
+  Contract ->> Alice: bob-pk_chat, alice-pk_chat
+  Alice ->> Contract: chatkeys[Alice][Bob] = encrypt(sk_alice_bob, alice-pk_chat)
+  Alice ->> Contract: chatkeys[Bob][Alice] = encrypt(sk_alice_bob, bob-pk_chat)
 
-  Note over Alice: s := decrypt_metamask(c_s)
-  Note over Alice: sk, pk := keygen(s)
+
+  Note over Alice, Bob:
+  Note over Alice: c = encrypt(pk_bob, m)
+  Alice ->> Bob: c
+  Note over Bob: m = decrypt(sk_bob, c)
 ```
 
-This way, Alice can use her private key `sk` without exposing it.
-
-### Messaging
-
-As we have shown above, the users provide their chatting public key at first setup. If we want to send a message to someone, we use their public key `pk` to encrypt our message, and they will decrypt it with their secret key `sk` to read it.
+When Alice and Bob talk to eachother, they will encrypt the messages with this secret key.
 
 ```mermaid
 sequenceDiagram
   actor Alice
   actor Bob
 
-  Note over Alice: c = encrypt(pk_bob, m)
+  Note over Alice, Bob: assuming both have sk_alice_bob
+
+  Note over Alice: c = encrypt(sk_alice_bob, m)
   Alice ->> Bob: c
-  Note over Bob: m = decrypt(sk_bob, c)
+  Note over Bob: m = decrypt(sk_alice_bob, c)
 ```
+
+We use [AES256](https://www.npmjs.com/package/aes256) for this.
+
+Why not use public key encryption for messaging? There are two good reasons:
+
+1. Alice would not be able to read her messages sent to Bob, as they are encrypted with Bob's public key.
+2. Asymmetric encryption is much slower than symmetric encryption.
 
 ## Aliases
 
