@@ -14,7 +14,7 @@ import { BigNumber, ContractTransaction } from "ethers"
 chai.use(chaiAsPromised)
 const { expect } = chai
 
-describe(contractConstants.Chat.contractName, function() {
+describe(contractConstants.Chat.contractName, function () {
   let chatContract: Chat
   let tx: ContractTransaction
 
@@ -25,8 +25,8 @@ describe(contractConstants.Chat.contractName, function() {
   let addrs: SignerWithAddress[]
 
   // deploy the contract once
-  before(async function() {
-    const factory = ((await ethers.getContractFactory(contractConstants.Chat.contractName)) as unknown) as Chat__factory
+  before(async function () {
+    const factory = (await ethers.getContractFactory(contractConstants.Chat.contractName)) as unknown as Chat__factory
     ;[owner, alice, bob, ...addrs] = await ethers.getSigners()
     chatContract = await factory.deploy()
     await chatContract.deployed()
@@ -52,83 +52,26 @@ describe(contractConstants.Chat.contractName, function() {
     )
   })
 
-  describe("deployment", function() {
-    it("should have alice and bob initialized", async function() {
+  describe("deployment", function () {
+    it("should have alice and bob initialized", async function () {
       expect(await chatContract.isInitialized(alice.address)).to.be.true
       expect(await chatContract.isInitialized(bob.address)).to.be.true
     })
 
-    it("should have owner as owner", async function() {
+    it("should have owner as owner", async function () {
       expect(await chatContract.owner()).to.eq(owner.address)
     })
   })
 
-  describe("aliasing", function() {
-    const alias = "Hello there"
-    const aliasBytes = ethers.utils.zeroPad(Buffer.from(alias), 32)
-
-    it("should allow alice to buy an alias", async function() {
-      const fee = await chatContract.aliasFee()
-      await chatContract.connect(alice).purchaseAlias(aliasBytes, { value: fee })
-      let [aliasOwner, aliasPrice, addressAlias] = await Promise.all([
-        chatContract.aliasToAddress(aliasBytes),
-        chatContract.aliasPrice(aliasBytes),
-        chatContract.addressToAlias(alice.address),
-      ])
-      expect(aliasOwner).eq(alice.address)
-      expect(aliasPrice.eq(0)).to.be.true
-      expect(Uint8Array.from(Buffer.from(addressAlias.slice(2), "hex"))).to.deep.eq(aliasBytes)
-    })
-
-    it("should allow bob to buy alice's alias for higher price", async function() {
-      const fee = await chatContract.aliasFee()
-      await chatContract.connect(bob).purchaseAlias(aliasBytes, { value: fee.add(parseEther("0.001")) })
-      let [aliasOwner, aliasPrice, addressAlias] = await Promise.all([
-        chatContract.aliasToAddress(aliasBytes),
-        chatContract.aliasPrice(aliasBytes),
-        chatContract.addressToAlias(bob.address),
-      ])
-      expect(aliasOwner).eq(bob.address)
-      expect(aliasPrice.eq(parseEther("0.001"))).to.be.true
-      expect(Uint8Array.from(Buffer.from(addressAlias.slice(2), "hex"))).to.deep.eq(aliasBytes)
-    })
-
-    it("should allow bob to refund", async function() {
-      const prev_bobBalance = await bob.getBalance()
-      const prev_aliasPrice = await chatContract.aliasPrice(aliasBytes)
-
-      // bob makes a refund
-      await chatContract.connect(bob).refundAlias(aliasBytes)
-      expect(await chatContract.payments(bob.address)).to.eq(prev_aliasPrice)
-      await chatContract.connect(bob).withdrawPayments(bob.address)
-
-      let [aliasOwner, aliasPrice, addressAlias, bobBalance] = await Promise.all([
-        chatContract.aliasToAddress(aliasBytes),
-        chatContract.aliasPrice(aliasBytes),
-        chatContract.addressToAlias(bob.address),
-        bob.getBalance(),
-      ])
-      expect(aliasOwner).eq(ethers.utils.hexZeroPad([], 20))
-      expect(aliasPrice.eq(BigNumber.from(0))).to.be.true
-      expect(Uint8Array.from(Buffer.from(addressAlias.slice(2), "hex"))).to.deep.eq(
-        ethers.utils.zeroPad(Buffer.from(""), 32)
-      )
-      expect(bobBalance.gt(prev_bobBalance)).to.be.true
-    })
-
-    it("should allow owner to change alias fee", async function() {
-      const newFee = parseEther("1.23") // ether
-      await chatContract.connect(owner).changeAliasBaseFee(newFee)
-      expect((await chatContract.aliasFee()).eq(newFee)).to.be.true
-    })
-  })
-
-  describe("messaging", function() {
-    it("should encrypt & decrypt correctly", async function() {
+  describe("messaging", function () {
+    it("should encrypt & decrypt correctly", async function () {
       // alice will send some message to bob
       const message = randomBytes(32)
 
-      // alice queries bob's initialization event
+      // she creates a random private key to chat with bob
+      const secret = randomBytes(32)
+
+      // alice get bob's public key and encrypts the secret
       const bobInitEvent = (await chatContract.queryFilter(chatContract.filters.UserInitialized(bob.address)))[0].args
       const [bobPubkeyPrefix, bobPubkeyX, bobSecretHex] = [
         bobInitEvent._pubKeyPrefix ? "02" : "03",
@@ -136,14 +79,23 @@ describe(contractConstants.Chat.contractName, function() {
         bobInitEvent._encSecret.slice(2), // omit 0x
       ]
       const bobPubkey = Buffer.from(bobPubkeyPrefix + bobPubkeyX, "hex")
+      const secretEncryptedForBob = CryptoChat.encrypt(bobPubkey.toString("hex"), secret)
 
-      // she creates a random private keyand encrypts it with her key and bob's key
+      // she also does the same for herself
+      const aliceInitEvent = (await chatContract.queryFilter(chatContract.filters.UserInitialized(bob.address)))[0].args
+      const [alicePubkeyPrefix, alicePubkeyX, aliceSecretHex] = [
+        bobInitEvent._pubKeyPrefix ? "02" : "03",
+        bobInitEvent._pubKeyX.slice(2), // omit 0x
+        bobInitEvent._encSecret.slice(2), // omit 0x
+      ]
+      const alicePubkey = Buffer.from(bobPubkeyPrefix + bobPubkeyX, "hex")
+      const secretEncryptedForAlice = CryptoChat.encrypt(alicePubkey.toString("hex"), secret)
 
-      const ciphertext = CryptoChat.encrypt(bobPubkey.toString("hex"), message)
-
-      // alice sends the encrypted message
+      // alice initializes the chat with bob
+      await chatContract.initialize()
+      // alice encrypts the message with secret and sends it to bob
       tx = await chatContract.connect(alice).sendMessage(ciphertext.toString("hex"), bob.address)
-      expectEvent(await tx.wait(), "MessageSent", r => {
+      expectEvent(await tx.wait(), "MessageSent", (r) => {
         let [_from, _to, _message] = [r._from, r._to, r._message]
         expect(_from).eq(alice.address)
         expect(_to).eq(bob.address)
