@@ -57,7 +57,6 @@ contract Chat is Ownable, PullPayment {
 
   /// @notice Purchase an alias
   /// @dev A user can buy an alias from themselves. This in effect increases the price.
-  /// @custom:todo allow only one alias per user?
   function purchaseAlias(bytes32 _alias) external payable onlyInitialized {
     // get previous info
     uint256 lastPrice = aliasPrice[_alias];

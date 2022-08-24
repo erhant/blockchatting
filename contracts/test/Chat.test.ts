@@ -125,19 +125,20 @@ describe(contractConstants.Chat.contractName, function() {
 
   describe("messaging", function() {
     it("should encrypt & decrypt correctly", async function() {
+      // alice will send some message to bob
       const message = randomBytes(32)
 
-      // alice and bob both query bob's initialization event
+      // alice queries bob's initialization event
       const bobInitEvent = (await chatContract.queryFilter(chatContract.filters.UserInitialized(bob.address)))[0].args
-
-      // alice will send the message to bob
-      // so she encrypts her message with his key
       const [bobPubkeyPrefix, bobPubkeyX, bobSecretHex] = [
         bobInitEvent._pubKeyPrefix ? "02" : "03",
         bobInitEvent._pubKeyX.slice(2), // omit 0x
         bobInitEvent._encSecret.slice(2), // omit 0x
       ]
       const bobPubkey = Buffer.from(bobPubkeyPrefix + bobPubkeyX, "hex")
+
+      // she creates a random private keyand encrypts it with her key and bob's key
+
       const ciphertext = CryptoChat.encrypt(bobPubkey.toString("hex"), message)
 
       // alice sends the encrypted message
