@@ -28,8 +28,11 @@ contract Chat is Ownable, PullPayment {
     bytes32 publicKeyX;
   }
 
-  /// Empty user initialization constant, for utility purposes
-  UserInitialization private constant emptyUserInitialization = UserInitialization(0, 0, 0);
+  /// Check if a user initialization object is empty.
+  function isInitialized(address user) public view returns (bool) {
+    return
+      userInitializations[user].encryptedSecret == bytes32(0) && userInitializations[user].publicKeyX == bytes32(0);
+  }
 
   /// Number of initialized users, for frontend
   uint256 public initializedUserCount = 0;
@@ -47,13 +50,13 @@ contract Chat is Ownable, PullPayment {
   uint256 public aliasFee = 0.0075 ether;
   uint256 private treasury = 0;
 
-  /// @notice Allow users to interact only if they have provided public key
+  ///  Allow users to interact only if they have provided public key
   modifier onlyInitializedUser() {
-    require(userInitializations[msg.sender] != emptyUserInitialization, "User was not initialized.");
+    require(isInitialized(msg.sender), "User was not initialized.");
     _;
   }
 
-  /// @notice Emits a MessageSent event, as a form of storage.
+  ///  Emits a MessageSent event, as a form of storage.
   function sendMessage(string calldata _text, address _to) external onlyInitializedUser {
     require(
       (chatInitializations[msg.sender][_to] == chatInitializations[_to][msg.sender]) &&
@@ -63,13 +66,13 @@ contract Chat is Ownable, PullPayment {
     emit MessageSent(msg.sender, _to, _text);
   }
 
-  /// @notice User provides their public key and encrypted secret to start using the application
+  ///  User provides their public key and encrypted secret to start using the application
   function initializeUser(
     bytes32 encryptedSecret,
     bool pubKeyPrefix,
     bytes32 pubKeyX
   ) external {
-    require(userInitializations[msg.sender] != UserInitialization, "User already initialized.");
+    require(!isInitialized(msg.sender), "User already initialized.");
     userInitializations[msg.sender] = UserInitialization(encryptedSecret, pubKeyPrefix, pubKeyX);
     initializedUserCount++;
   }

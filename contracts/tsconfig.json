@@ -1,11 +1,11 @@
 {
+  "extends": "./node_modules/gts/tsconfig-google.json",
   "compilerOptions": {
-    "target": "es2022",
+    "rootDir": ".",
+    "outDir": "build",
+    "target": "es2018",
     "module": "commonjs",
     "strict": true,
-    "esModuleInterop": true,
-    "outDir": "dist",
-    "resolveJsonModule": true
   },
   "include": ["**/*.ts"],
   "exclude": ["node_modules", "artifacts", "cache"],
