@@ -1,13 +1,8 @@
-import chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import {CryptoChat} from '../../frontend/api/public-key-crypto';
-import {randomBytes} from 'crypto';
+import {expect} from 'chai';
+import {CryptoChat} from '../lib/crypto';
 
-chai.use(chaiAsPromised);
-const {expect} = chai;
-
-describe('CryptoChat tests', function () {
-  it('should encrypt correctly', function () {
+describe('CryptoChat tests', async () => {
+  it('should encrypt correctly', async () => {
     const crypto: CryptoChat = new CryptoChat(CryptoChat.generateSecret());
     const plaintext = Buffer.from('hey hey there.');
     const ciphertext = crypto.encrypt(plaintext);
@@ -21,7 +16,7 @@ describe('CryptoChat tests', function () {
     expect(plaintext.equals(ciphertext)).to.be.not.true;
   });
 
-  it('should decrypt correctly', function () {
+  it('should decrypt correctly', async () => {
     const crypto: CryptoChat = new CryptoChat(CryptoChat.generateSecret());
     const plaintext = Buffer.from('hey hey there.');
     const ciphertext = crypto.encrypt(plaintext);
@@ -30,7 +25,7 @@ describe('CryptoChat tests', function () {
     expect(plaintext.equals(plaintext2)).to.be.true;
   });
 
-  it('should generate same keypair for the same secret', function () {
+  it('should generate same keypair for the same secret', async () => {
     const secret = CryptoChat.generateSecret();
     const crypto1: CryptoChat = new CryptoChat(secret);
     const crypto2: CryptoChat = new CryptoChat(secret);

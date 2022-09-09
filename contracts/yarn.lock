@@ -1000,7 +1000,7 @@
   dependencies:
     "@types/node" "*"
 
-"@types/secp256k1@^4.0.1":
+"@types/secp256k1@^4.0.1", "@types/secp256k1@^4.0.3":
   version "4.0.3"
   resolved "https://registry.yarnpkg.com/@types/secp256k1/-/secp256k1-4.0.3.tgz#1b8e55d8e00f08ee7220b4d59a6abe89c37a901c"
   integrity sha512-Da66lEIFeIz9ltsdMZcpQvmrmmoqrfju8pm1BH8WbYjZSwUgCwXLb9C+9XYogwBITnbsSaMdVPb2ekf7TV+03w==
@@ -1452,6 +1452,11 @@ arrify@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/arrify/-/arrify-1.0.1.tgz#898508da2226f380df904728456849c1501a4b0d"
   integrity sha512-3CYzex9M9FGQjCGMGyi6/31c8GJbgb0qGyrx5HWxPd0aCwh4cB2YjMb2Xf9UuoogrMrlO9cTqnB5rI5GHZTcUA==
+
+ascii85@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/ascii85/-/ascii85-1.0.2.tgz#6212543d4236944debe4827ecae642776e415448"
+  integrity sha512-kliwItQL8aueLy2XwGDRc6U4FLrZuSKvc3NYhaTnUEsl8JjjkvMNYJ2WmBoZnUYMEz6nvZ9yGhruoufaVcNAnw==
 
 asn1.js@^5.2.0:
   version "5.4.1"
@@ -3256,6 +3261,15 @@ ecc-jsbn@~0.1.1:
     jsbn "~0.1.0"
     safer-buffer "^2.1.0"
 
+eciesjs@^0.3.15:
+  version "0.3.15"
+  resolved "https://registry.yarnpkg.com/eciesjs/-/eciesjs-0.3.15.tgz#614fd3251a72c063b6a0a9a8dbbfe89aafc94b7a"
+  integrity sha512-8hMcxjgUCSyastAK+BkFAzojRR/wqJNUkp20a0Yw8PudTSeHB57kjcl9x2jkaTVCG2NJwSTdJkM6RcUpqnY+Zw==
+  dependencies:
+    "@types/secp256k1" "^4.0.3"
+    futoin-hkdf "^1.5.1"
+    secp256k1 "^4.0.3"
+
 ee-first@1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/ee-first/-/ee-first-1.1.1.tgz#590c61156b0ae2f4f0255732a158b266bc56b21d"
@@ -4664,6 +4678,11 @@ functions-have-names@^1.2.2:
   version "1.2.3"
   resolved "https://registry.yarnpkg.com/functions-have-names/-/functions-have-names-1.2.3.tgz#0404fe4ee2ba2f607f0e0ec3c80bae994133b834"
   integrity sha512-xckBUXyTIqT97tq2x2AMb+g163b5JFysYk0x4qxNFwbfQkmNZoiRHb6sPzI9/QV33WeuvVYBUIiD4NzNIyqaRQ==
+
+futoin-hkdf@^1.5.1:
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/futoin-hkdf/-/futoin-hkdf-1.5.1.tgz#141f00427bc9950b38a42aa786b99c318b9b688d"
+  integrity sha512-g5d0Qp7ks55hYmYmfqn4Nz18XH49lcCR+vvIvHT92xXnsJaGZmY1EtWQWilJ6BQp57heCIXM/rRo+AFep8hGgg==
 
 ganache-core@^2.13.2:
   version "2.13.2"
@@ -8254,7 +8273,7 @@ scryptsy@^1.2.1:
   dependencies:
     pbkdf2 "^3.0.3"
 
-secp256k1@^4.0.1:
+secp256k1@^4.0.1, secp256k1@^4.0.3:
   version "4.0.3"
   resolved "https://registry.yarnpkg.com/secp256k1/-/secp256k1-4.0.3.tgz#c4559ecd1b8d3c1827ed2d1b94190d69ce267303"
   integrity sha512-NLZVf+ROMxwtEj3Xa562qgv2BK5e2WNmXPiOdVIPLgs6lyTzMvBq0aWTYMI5XCP9jZMVKOcqZLw/Wc4vDkuxhA==

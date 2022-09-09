@@ -13,10 +13,5 @@ export default async function main(): Promise<string> {
 }
 
 if (require.main === module) {
-  main()
-    .then(() => process.exit(0))
-    .catch(error => {
-      console.error(error);
-      process.exit(1);
-    });
+  main();
 }

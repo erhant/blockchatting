@@ -31,7 +31,7 @@ contract Chat is Ownable, PullPayment {
   /// Check if a user initialization object is empty.
   function isInitialized(address user) public view returns (bool) {
     return
-      userInitializations[user].encryptedSecret == bytes32(0) && userInitializations[user].publicKeyX == bytes32(0);
+      !(userInitializations[user].encryptedSecret == bytes32(0) && userInitializations[user].publicKeyX == bytes32(0));
   }
 
   /// Number of initialized users, for frontend
@@ -41,7 +41,7 @@ contract Chat is Ownable, PullPayment {
   mapping(address => UserInitialization) public userInitializations;
 
   /// A shared secret between two users, encrypted by the public key of first user
-  mapping(address => mapping(address => bytes32)) public chatInitializations;
+  mapping(address => mapping(address => bytes)) public chatInitializations;
 
   /// Address ~ Alias resolution and prices
   mapping(address => bytes32) public addressToAlias;
@@ -50,23 +50,24 @@ contract Chat is Ownable, PullPayment {
   uint256 public aliasFee = 0.0075 ether;
   uint256 private treasury = 0;
 
-  ///  Allow users to interact only if they have provided public key
+  /// Allow users to interact only if they have provided public key
   modifier onlyInitializedUser() {
     require(isInitialized(msg.sender), "User was not initialized.");
     _;
   }
 
-  ///  Emits a MessageSent event, as a form of storage.
-  function sendMessage(string calldata _text, address _to) external onlyInitializedUser {
-    require(
-      (chatInitializations[msg.sender][_to] == chatInitializations[_to][msg.sender]) &&
-        chatInitializations[msg.sender][_to] != bytes32(0),
-      "Chat is not initialized with this user yet."
-    );
-    emit MessageSent(msg.sender, _to, _text);
+  /// Emits a MessageSent event, as a form of storage.
+  function sendMessage(string calldata _ciphertext, address _to) external onlyInitializedUser {
+    // TODO: implement this
+    // require(
+    //   (chatInitializations[msg.sender][_to] == chatInitializations[_to][msg.sender]) &&
+    //     chatInitializations[msg.sender][_to] != bytes32(0),
+    //   "Chat is not initialized with this user yet."
+    // );
+    emit MessageSent(msg.sender, _to, _ciphertext);
   }
 
-  ///  User provides their public key and encrypted secret to start using the application
+  /// User provides their public key and encrypted secret to start using the application
   function initializeUser(
     bytes32 encryptedSecret,
     bool pubKeyPrefix,
@@ -77,11 +78,15 @@ contract Chat is Ownable, PullPayment {
     initializedUserCount++;
   }
 
+  /// Initialize a chat by providing a secret key for both the sender (you) and your receiver
   function initializeChat(
-    bytes32 yourEncryptedSecret,
-    bytes32 peerEncryptedSecret,
+    bytes memory yourEncryptedSecret,
+    bytes memory peerEncryptedSecret,
     address peer
-  ) external {}
+  ) external {
+    chatInitializations[msg.sender][peer] = yourEncryptedSecret;
+    chatInitializations[peer][msg.sender] = peerEncryptedSecret;
+  }
 
   receive() external payable {}
 

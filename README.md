@@ -91,10 +91,4 @@ The refunds are done via [PullPayment](https://docs.openzeppelin.com/contracts/2
 
 ## Fees
 
-As written above, a fee is taken from each alias purchase
-
-## Friends
-
-You can store some friends in your local storage.
-
-**TODO**: Store friends on-chain (via events), and make them be encrypted by user's pubkey.
+As written above, a fee is taken from each alias purchase. (TODO)
