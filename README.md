@@ -2,11 +2,9 @@
   <img src="./img/blockchattin.svg" alt="logo" width="200">
 </p>
 
-# Blockchattin
+# BlockchattinL Peer-to-Peer On-Chain Chatting
 
-**A decentralized chatting application where each message is a transaction**.
-
-## Peer-to-Peer Chatting
+**A decentralized chatting application where each message is a transaction**. Work in progress.
 
 Although a [deprecated functionality of MetaMask](https://medium.com/metamask/metamask-api-method-deprecation-2b0564a84686), this application uses [`eth_decrypt`](https://docs.metamask.io/guide/rpc-api.html#eth-decrypt-deprecated) and [`eth_getEncryptionPublicKey`](https://docs.metamask.io/guide/rpc-api.html#eth-getencryptionpublickey-deprecated) to use asymmetric encryption for the messages. ([see also](https://betterprogramming.pub/exchanging-encrypted-data-on-blockchain-using-metamask-a2e65a9a896c))
 
@@ -17,7 +15,7 @@ There are two drawbacks to these functions:
 
 So, EOA keypair will not be used for chatting per se. Instead, the user will generate a public-private key pair and store . On first use, the user will encrypt this secret with their own EOA public key (via MetaMask RPC). We use [eciejs](https://ecies.org/js/) for this.
 
-### Initialization (Asymmetric)
+## User Initialization
 
 The first time a user starts the application a key-pair is generated to be used for chatting alone, and the secret to generate this keypair is encrypted with EOA public key. These are stored in the smart contract:
 
@@ -42,7 +40,7 @@ sequenceDiagram
 
 We use [Elliptic Curve Integrated Encryption Scheme for secp256k1](https://ecies.org/js/) for this.
 
-### Messaging
+## Chat Initializations
 
 As we have shown above, the users provide their chatting public key at first setup. When two users chat for the first time, the initiator will generate a random 32-byte key, and store this in the contract both with it's own public key and the recipient's public key.
 
@@ -57,14 +55,21 @@ sequenceDiagram
   Alice ->> Contract: chatkeys[Bob][Alice] = encrypt(sk_alice_bob, bob-pk_chat)
 ```
 
+## Peer-to-Peer Encrypted Messaging
+
 When Alice and Bob talk to eachother, they will encrypt the messages with this secret key.
 
 ```mermaid
 sequenceDiagram
   actor Alice
   actor Bob
+  actor Contract
 
-  Note over Alice, Bob: assuming both have sk_alice_bob
+  Contract ->> Alice: sk_alice_bob_enc = chatkeys[Alice][Bob]
+  Contract ->> Bob: sk_alice_bob_enc = chatkeys[Bob][Alice]
+
+  Note over Alice: sk_alice_bob = decrypt(sk_alice_bob_enc, alice-sk_chat)
+  Note over Bob: sk_alice_bob = decrypt(sk_alice_bob_enc, bob-sk_chat)
 
   Note over Alice: c = encrypt(sk_alice_bob, m)
   Alice ->> Bob: c
@@ -89,6 +94,9 @@ Normally, messaging is done via addresses but users can buy Aliases too. The `pr
 
 The refunds are done via [PullPayment](https://docs.openzeppelin.com/contracts/2.x/api/payment#PullPayment). Note that Alice can also refund **cats** to get back her `1` ether; but the `fee` stays with the contract.
 
-## Fees
+## Code Style
 
-As written above, a fee is taken from each alias purchase. (TODO)
+- Uses GTS for TypeScript formatting and linting.
+- Uses OpenZeppelin contracts as a base.
+- Uses Solhint for Solidity linting.
+- Uses Hardhat+Solidity for Solidity formatting.

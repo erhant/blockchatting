@@ -8,11 +8,12 @@ import {randomBytes} from 'crypto';
 import {encrypt as encryptMM} from '@metamask/eth-sig-util';
 import {encrypt as encryptEC, decrypt as decryptEC, PrivateKey} from 'eciesjs';
 const ascii85 = require('ascii85'); // TODO: can we remove this?
+import {aesEncrypt, aesDecrypt} from 'eciesjs/dist/utils';
 
 /**
  * A utility class that uses MetaMask RPC api to use public key cryptography of your EOA.
  */
-export class CryptoEOA {
+export class CryptoMetaMask {
   private SCHEME_VERSION: Readonly<string> = 'x25519-xsalsa20-poly1305';
   private ACCOUNT: Readonly<string> = '';
   private RPC: any;
@@ -98,12 +99,8 @@ export class CryptoEOA {
 /**
  * A utility class that uses your local public and private keys. If no key is provided to the constructor, a new one is generated.
  */
-export class CryptoChat {
+export class CryptoECIES {
   private sk: PrivateKey;
-
-  static generateSecret(): Buffer {
-    return randomBytes(32);
-  }
 
   static encrypt(publicKey: string, data: Buffer): Buffer {
     return encryptEC(publicKey, data);
@@ -118,10 +115,33 @@ export class CryptoChat {
   }
 
   encrypt(data: Buffer): Buffer {
-    return CryptoChat.encrypt(this.getPublicKey(), data);
+    return CryptoECIES.encrypt(this.getPublicKey(), data);
   }
 
   getPublicKey(): string {
     return this.sk.publicKey.toHex();
   }
+}
+
+/**
+ * A utility class that uses your local public and private keys. If no key is provided to the constructor, a new one is generated.
+ */
+export class CryptoAES256 {
+  private key: any;
+
+  constructor(key: Buffer) {
+    this.key = key;
+  }
+
+  decrypt(data: Buffer): Buffer {
+    return aesDecrypt(this.key, data);
+  }
+
+  encrypt(data: Buffer): Buffer {
+    return aesEncrypt(this.key, data);
+  }
+}
+
+export function generateSecret(): Buffer {
+  return randomBytes(32);
 }

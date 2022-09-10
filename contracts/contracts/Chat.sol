@@ -23,7 +23,7 @@ contract Chat is Ownable, PullPayment {
    * With this public key, users aggree on a symmetric key which is later used to encrypt messages.
    */
   struct UserInitialization {
-    bytes32 encryptedSecret;
+    bytes32 encryptedUserSecret;
     bool publicKeyPrefix;
     bytes32 publicKeyX;
   }
@@ -31,7 +31,8 @@ contract Chat is Ownable, PullPayment {
   /// Check if a user initialization object is empty.
   function isInitialized(address user) public view returns (bool) {
     return
-      !(userInitializations[user].encryptedSecret == bytes32(0) && userInitializations[user].publicKeyX == bytes32(0));
+      !(userInitializations[user].encryptedUserSecret == bytes32(0) &&
+        userInitializations[user].publicKeyX == bytes32(0));
   }
 
   /// Number of initialized users, for frontend
@@ -69,23 +70,23 @@ contract Chat is Ownable, PullPayment {
 
   /// User provides their public key and encrypted secret to start using the application
   function initializeUser(
-    bytes32 encryptedSecret,
+    bytes32 encryptedUserSecret,
     bool pubKeyPrefix,
     bytes32 pubKeyX
   ) external {
     require(!isInitialized(msg.sender), "User already initialized.");
-    userInitializations[msg.sender] = UserInitialization(encryptedSecret, pubKeyPrefix, pubKeyX);
+    userInitializations[msg.sender] = UserInitialization(encryptedUserSecret, pubKeyPrefix, pubKeyX);
     initializedUserCount++;
   }
 
   /// Initialize a chat by providing a secret key for both the sender (you) and your receiver
   function initializeChat(
-    bytes memory yourEncryptedSecret,
-    bytes memory peerEncryptedSecret,
+    bytes memory yourEncryptedChatSecret,
+    bytes memory peerEncryptedChatSecret,
     address peer
   ) external {
-    chatInitializations[msg.sender][peer] = yourEncryptedSecret;
-    chatInitializations[peer][msg.sender] = peerEncryptedSecret;
+    chatInitializations[msg.sender][peer] = yourEncryptedChatSecret;
+    chatInitializations[peer][msg.sender] = peerEncryptedChatSecret;
   }
 
   receive() external payable {}

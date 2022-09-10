@@ -12,7 +12,7 @@ const ascii85 = require("ascii85")
 /**
  * A utility class that uses MetaMask RPC api to use public key cryptography of your EOA.
  */
-export class CryptoEOA {
+export class CryptoMetaMask {
   private SCHEME_VERSION: Readonly<string> = "x25519-xsalsa20-poly1305"
   private ACCOUNT: Readonly<string> = ""
   private RPC: any
@@ -98,7 +98,7 @@ export class CryptoEOA {
 /**
  * A utility class that uses your local public and private keys. If no key is provided to the constructor, a new one is generated.
  */
-export class CryptoChat {
+export class CryptoECIES {
   private sk: PrivateKey
 
   static generateSecret(): Buffer {
@@ -118,7 +118,7 @@ export class CryptoChat {
   }
 
   encrypt(data: Buffer): Buffer {
-    return CryptoChat.encrypt(this.getPublicKey(), data)
+    return CryptoECIES.encrypt(this.getPublicKey(), data)
   }
 
   getPublicKey(): string {

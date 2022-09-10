@@ -3,7 +3,7 @@ import { useWalletContext } from "../context/wallet.context"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Layout from "../components/layout"
 import { Button, Text, Group, Title, Box, TextInput, NumberInput } from "@mantine/core"
-import { CryptoEOA } from "../api/public-key-crypto"
+import { CryptoMetaMask } from "../api/public-key-crypto"
 
 const MyTokenContractPage: NextPage = () => {
   const { wallet } = useWalletContext()
@@ -14,9 +14,9 @@ const MyTokenContractPage: NextPage = () => {
     const msg = "abcdef123456"
 
     // Public Key
-    const cryptoEOA = new CryptoEOA(wallet.address, window.ethereum)
-    const ciphertext = await cryptoEOA.encrypt(Buffer.from(msg, "utf-8"))
-    const plaintext = await cryptoEOA.decrypt(ciphertext)
+    const CryptoMetaMask = new CryptoMetaMask(wallet.address, window.ethereum)
+    const ciphertext = await CryptoMetaMask.encrypt(Buffer.from(msg, "utf-8"))
+    const plaintext = await CryptoMetaMask.decrypt(ciphertext)
 
     console.log("MSG:", msg)
     console.log("C:", ciphertext.toString("utf-8"))
