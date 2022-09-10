@@ -3,11 +3,8 @@ import {expect} from 'chai';
 //@ts-ignore // the objects here are created by typechain
 import {Chat__factory, Chat} from '../types/typechain';
 import {SignerWithAddress} from '@nomiclabs/hardhat-ethers/signers';
-import contractConstants from '../constants';
 import {CryptoAES256, CryptoECIES, CryptoMetaMask, generateSecret} from '../lib/crypto';
 import {randomBytes} from 'crypto';
-import {formatEther, parseEther} from 'ethers/lib/utils';
-import {BigNumber, ContractTransaction} from 'ethers';
 
 describe('Chat', async () => {
   let contract: Chat;

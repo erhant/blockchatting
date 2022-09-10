@@ -2,18 +2,17 @@
   <img src="./img/blockchattin.svg" alt="logo" width="200">
 </p>
 
-# BlockchattinL Peer-to-Peer On-Chain Chatting
+# Blockchattin: Peer-to-Peer On-Chain Chatting
 
 **A decentralized chatting application where each message is a transaction**. Work in progress.
 
 Although a [deprecated functionality of MetaMask](https://medium.com/metamask/metamask-api-method-deprecation-2b0564a84686), this application uses [`eth_decrypt`](https://docs.metamask.io/guide/rpc-api.html#eth-decrypt-deprecated) and [`eth_getEncryptionPublicKey`](https://docs.metamask.io/guide/rpc-api.html#eth-getencryptionpublickey-deprecated) to use asymmetric encryption for the messages. ([see also](https://betterprogramming.pub/exchanging-encrypted-data-on-blockchain-using-metamask-a2e65a9a896c))
 
-There are two drawbacks to these functions:
+There are two drawbacks to these functions: `eth_decrypt` and `eth_getEncryptionPublicKey` asks for user input everytime it is called, and encryption is done for UTF-8 only. So, an EOA keypair should not be used for chatting per se. Instead, the user will generate a public-private key pair and store the encrypted secret on-chain: on first use, the user will encrypt this secret with their own EOA public key (via MetaMask RPC). On later usage, the user can retrieve the stored encrypted key and decrypt it with their EOA key.
 
-1. `eth_decrypt` and `eth_getEncryptionPublicKey` asks for user input everytime it is called.
-2. Encryption is done for UTF-8 only.
+With this approach, no keys are exposed. As for the messaging itself, a secret key is created. Say Alice is talking to Bob, Alice will create the secret and store two copies of this secret: one encrypted with Alice's public key and the other encrypted with Bob's public key. This secret will be used to encrypt and decrypt the actual messages.
 
-So, EOA keypair will not be used for chatting per se. Instead, the user will generate a public-private key pair and store . On first use, the user will encrypt this secret with their own EOA public key (via MetaMask RPC). We use [eciejs](https://ecies.org/js/) for this.
+For symmetric encryption we use AES256, and for asymmetric encryption we use ECIES (secp256k1).
 
 ## User Initialization
 

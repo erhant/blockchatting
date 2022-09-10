@@ -81,8 +81,8 @@ contract Chat is Ownable, PullPayment {
 
   /// Initialize a chat by providing a secret key for both the sender (you) and your receiver
   function initializeChat(
-    bytes memory yourEncryptedChatSecret,
-    bytes memory peerEncryptedChatSecret,
+    bytes calldata yourEncryptedChatSecret,
+    bytes calldata peerEncryptedChatSecret,
     address peer
   ) external {
     chatInitializations[msg.sender][peer] = yourEncryptedChatSecret;
