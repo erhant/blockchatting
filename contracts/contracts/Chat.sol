@@ -10,22 +10,17 @@ import '@openzeppelin/contracts/access/Ownable.sol';
  */
 contract Chat is Ownable {
   struct UserInitialization {
-    bytes32 encryptedUserSecret;
+    bytes encryptedUserSecret;
     bool publicKeyPrefix;
     bytes32 publicKeyX;
   }
 
-  event MessageSent(address indexed _from, address indexed _to, string _message);
+  event MessageSent(address indexed _from, address indexed _to, string _message, uint256 _time);
   event EntryFeeChanged(uint256 amount);
+  event UserInitialized(address user);
+  event ChatInitialized(address initializer, address peer);
 
-  uint256 entryFee = 0.1 ether;
-
-  /// Check if a user initialization object is empty.
-  function isInitialized(address user) public view returns (bool) {
-    return
-      !(userInitializations[user].encryptedUserSecret == bytes32(0) &&
-        userInitializations[user].publicKeyX == bytes32(0));
-  }
+  uint256 public entryFee = 0.1 ether;
 
   /// Mapping of user to their initialization object
   mapping(address => UserInitialization) public userInitializations;
@@ -33,10 +28,15 @@ contract Chat is Ownable {
   /// A shared secret between two users, encrypted by the public key of first user
   mapping(address => mapping(address => bytes)) public chatInitializations;
 
-  /// Allow users to interact only if they have provided public key
-  modifier onlyInitializedUser() {
-    require(isInitialized(msg.sender), 'User is not initialized.');
-    _;
+  /// Check if a user initialization object is empty.
+  function isUserInitialized(address user) public view returns (bool) {
+    return
+      !(userInitializations[user].encryptedUserSecret.length == 0 &&
+        userInitializations[user].publicKeyX == bytes32(0));
+  }
+
+  function isChatInitialized(address initializer, address peer) public view returns (bool) {
+    return !(chatInitializations[initializer][peer].length == 0 && chatInitializations[peer][initializer].length == 0);
   }
 
   /**
@@ -44,14 +44,17 @@ contract Chat is Ownable {
    * @param ciphertext A message encrypted by the secret chatting key.
    * @param to recipient address
    */
-  function sendMessage(string calldata ciphertext, address to) external {
-    // TODO: implement this
+  function sendMessage(
+    string calldata ciphertext,
+    address to,
+    uint256 time
+  ) external {
     // require(
     //   (chatInitializations[msg.sender][_to] == chatInitializations[_to][msg.sender]) &&
     //     chatInitializations[msg.sender][_to] != bytes32(0),
     //   "Chat is not initialized with this user yet."
     // );
-    emit MessageSent(msg.sender, to, ciphertext);
+    emit MessageSent(msg.sender, to, ciphertext, time);
   }
 
   /**
@@ -63,13 +66,14 @@ contract Chat is Ownable {
    * @param publicKeyX 32-byte X-coordinate of the compressed key
    */
   function initializeUser(
-    bytes32 encryptedUserSecret,
+    bytes calldata encryptedUserSecret,
     bool publicKeyPrefix,
-    bytes32 pubKeyX
+    bytes32 publicKeyX
   ) external payable {
-    require(!isInitialized(msg.sender), 'User already initialized.');
+    require(!isUserInitialized(msg.sender), 'User already initialized.');
     require(msg.value == entryFee, 'You must pay exactly as much as the entry fee.');
-    userInitializations[msg.sender] = UserInitialization(encryptedUserSecret, publicKeyPrefix, pubKeyX);
+    userInitializations[msg.sender] = UserInitialization(encryptedUserSecret, publicKeyPrefix, publicKeyX);
+    emit UserInitialized(msg.sender);
   }
 
   /**
@@ -84,15 +88,17 @@ contract Chat is Ownable {
     bytes calldata yourEncryptedChatSecret,
     bytes calldata peerEncryptedChatSecret,
     address peer
-  ) external onlyInitializedUser {
-    require(isInitialized(peer), 'Peer is not initialized.');
+  ) external {
+    require(isUserInitialized(msg.sender), 'User is not initialized.');
+    require(isUserInitialized(peer), 'Peer is not initialized.');
     chatInitializations[msg.sender][peer] = yourEncryptedChatSecret;
     chatInitializations[peer][msg.sender] = peerEncryptedChatSecret;
+    emit ChatInitialized(msg.sender, peer);
   }
 
   /**
    * @notice Changes the entry fee.
-   * @param newFee new entry fee
+   * @param _entryFee new entry fee
    */
   function setEntryFee(uint256 _entryFee) external onlyOwner {
     entryFee = _entryFee;

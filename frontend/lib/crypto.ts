@@ -7,7 +7,8 @@
 import { randomBytes } from "crypto"
 import { encrypt as encryptMM } from "@metamask/eth-sig-util"
 import { encrypt as encryptEC, decrypt as decryptEC, PrivateKey } from "eciesjs"
-const ascii85 = require("ascii85")
+const ascii85 = require("ascii85") // TODO: can we remove this?
+import { aesEncrypt, aesDecrypt } from "eciesjs/dist/utils"
 
 /**
  * A utility class that uses MetaMask RPC api to use public key cryptography of your EOA.
@@ -101,10 +102,6 @@ export class CryptoMetaMask {
 export class CryptoECIES {
   private sk: PrivateKey
 
-  static generateSecret(): Buffer {
-    return randomBytes(32)
-  }
-
   static encrypt(publicKey: string, data: Buffer): Buffer {
     return encryptEC(publicKey, data)
   }
@@ -124,4 +121,27 @@ export class CryptoECIES {
   getPublicKey(): string {
     return this.sk.publicKey.toHex()
   }
+}
+
+/**
+ * A utility class that uses your local public and private keys. If no key is provided to the constructor, a new one is generated.
+ */
+export class CryptoAES256 {
+  private key: any
+
+  constructor(key: Buffer) {
+    this.key = key
+  }
+
+  decrypt(data: Buffer): Buffer {
+    return aesDecrypt(this.key, data)
+  }
+
+  encrypt(data: Buffer): Buffer {
+    return aesEncrypt(this.key, data)
+  }
+}
+
+export function generateSecret(): Buffer {
+  return randomBytes(32)
 }

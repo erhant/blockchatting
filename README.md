@@ -99,3 +99,7 @@ The refunds are done via [PullPayment](https://docs.openzeppelin.com/contracts/2
 - Uses OpenZeppelin contracts as a base.
 - Uses Solhint for Solidity linting.
 - Uses Hardhat+Solidity for Solidity formatting.
+
+## Running
+
+Run `npx hardhat node` at a separate terminal, and then run `npx hardhat run ./scripts/Chat.deploy.ts --network localhost` to deploy the contract. Launch the frontend with `yarn run dev`.

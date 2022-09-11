@@ -5,6 +5,8 @@ import {Chat__factory, Chat} from '../types/typechain';
 import {SignerWithAddress} from '@nomiclabs/hardhat-ethers/signers';
 import {CryptoAES256, CryptoECIES, CryptoMetaMask, generateSecret} from '../lib/crypto';
 import {randomBytes} from 'crypto';
+import {parseEther} from 'ethers/lib/utils';
+import {BigNumber} from 'ethers';
 
 describe('Chat', async () => {
   let contract: Chat;
@@ -21,45 +23,61 @@ describe('Chat', async () => {
     [owner, alice, bob, ...addrs] = await ethers.getSigners();
     contract = await factory.deploy();
     await contract.deployed();
-  });
-
-  describe('deployment', async () => {
-    it('should have owner as owner', async () => {
-      expect(await contract.owner()).to.eq(owner.address);
-    });
-
-    it('should have alice and bob uninitialized', async () => {
-      expect(await contract.isInitialized(alice.address)).to.eq(false);
-      expect(await contract.isInitialized(bob.address)).to.eq(false);
-    });
+    expect(await contract.owner()).to.eq(owner.address);
   });
 
   describe('initializations', async () => {
+    let entryFee: BigNumber;
+    before(async () => {
+      entryFee = await contract.entryFee();
+    });
+
     it('should initialize alice', async () => {
+      expect(await contract.isUserInitialized(alice.address)).to.eq(false);
+
       const aliceSecret = generateSecret();
       const alicePubkey = Buffer.from(new CryptoECIES(aliceSecret).getPublicKey(), 'hex');
-      await contract.connect(alice).initializeUser(
-        aliceSecret.toJSON().data, // this is supposed to be encrypted by MetaMask, but we dont do it in the test
-        alicePubkey[0] == 2, // prefix
-        alicePubkey.slice(1).toJSON().data, // 32 bytes
-        
-      );
+      await expect(
+        contract.connect(alice).initializeUser(
+          aliceSecret.toJSON().data, // this is supposed to be encrypted by MetaMask, but we dont do it in the test
+          alicePubkey[0] == 2, // prefix
+          alicePubkey.slice(1).toJSON().data, // 32 bytes
+          {
+            value: entryFee,
+          }
+        )
+      )
+        .to.emit(contract, 'UserInitialized')
+        .withArgs(alice.address);
     });
 
     it('should initialize bob', async () => {
+      expect(await contract.isUserInitialized(bob.address)).to.eq(false);
+
+      // bob generates a secret
       const bobSecret = generateSecret();
       const bobPubkey = Buffer.from(new CryptoECIES(bobSecret).getPublicKey(), 'hex');
-      await contract.connect(bob).initializeUser(
-        bobSecret.toJSON().data, // this is supposed to be encrypted by MetaMask, but we dont do it in the test
-        bobPubkey[0] == 2, // prefix
-        bobPubkey.slice(1).toJSON().data // 32 bytes
-      );
+      await expect(
+        contract.connect(bob).initializeUser(
+          bobSecret.toJSON().data, // this is supposed to be encrypted by MetaMask, but we dont do it in the test
+          bobPubkey[0] == 2, // prefix
+          bobPubkey.slice(1).toJSON().data, // 32 bytes
+          {
+            value: entryFee,
+          }
+        )
+      )
+        .to.emit(contract, 'UserInitialized')
+        .withArgs(bob.address);
 
-      expect(await contract.isInitialized(alice.address)).to.be.true;
-      expect(await contract.isInitialized(bob.address)).to.be.true;
+      expect(await contract.isUserInitialized(alice.address)).to.be.true;
+      expect(await contract.isUserInitialized(bob.address)).to.be.true;
     });
 
     it('should initialize chat between alice and bob', async () => {
+      // chat should be uninitialized at first
+      expect(await contract.isChatInitialized(alice.address, bob.address)).to.eq(false);
+
       // she creates a random key to chat with bob
       const chatSecret = generateSecret();
 
@@ -83,12 +101,15 @@ describe('Chat', async () => {
 
       const alicePubkey = Buffer.from(alicePubkeyPrefix + alicePubkeyX, 'hex');
       const chatSecretEncryptedForAlice = CryptoECIES.encrypt(alicePubkey.toString('hex'), chatSecret);
-      // console.log('SECRET  :', chatSecret, chatSecret.length);
-      // console.log('SECRET A:', chatSecretEncryptedForAlice, chatSecretEncryptedForAlice.length);
-      // console.log('SECRET B:', chatSecretEncryptedForBob, chatSecretEncryptedForBob.length);
 
       // alice initializes the chat with bob
-      await contract.connect(alice).initializeChat(chatSecretEncryptedForAlice, chatSecretEncryptedForBob, bob.address);
+      await expect(
+        contract.connect(alice).initializeChat(chatSecretEncryptedForAlice, chatSecretEncryptedForBob, bob.address)
+      )
+        .to.emit(contract, 'ChatInitialized')
+        .withArgs(alice.address, bob.address);
+
+      expect(await contract.isChatInitialized(alice.address, bob.address)).to.eq(true);
     });
 
     describe('messaging', async () => {
@@ -122,8 +143,10 @@ describe('Chat', async () => {
         const ciphertext = aes256Scheme.encrypt(message);
 
         // alice sends the message
-        const tx = await contract.connect(alice).sendMessage(ciphertext.toString('hex'), bob.address);
-        await tx.wait(); // wait for mining
+        const time = BigNumber.from(Date.now());
+        await expect(contract.connect(alice).sendMessage(ciphertext.toString('hex'), bob.address, time))
+          .to.emit(contract, 'MessageSent')
+          .withArgs(alice.address, bob.address, ciphertext.toString('hex'), time);
       });
 
       it('should allow bob to decrypt his encrypted message', async () => {
