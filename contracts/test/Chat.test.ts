@@ -41,7 +41,8 @@ describe('Chat', async () => {
       await contract.connect(alice).initializeUser(
         aliceSecret.toJSON().data, // this is supposed to be encrypted by MetaMask, but we dont do it in the test
         alicePubkey[0] == 2, // prefix
-        alicePubkey.slice(1).toJSON().data // 32 bytes
+        alicePubkey.slice(1).toJSON().data, // 32 bytes
+        
       );
     });
 
