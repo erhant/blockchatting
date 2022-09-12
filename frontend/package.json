@@ -1,11 +1,21 @@
 {
   "name": "blockchattin-frontend",
   "version": "0.1.0",
+  "description": "NextJS frontend implementation for Blockchattin.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/erhant/blockchattin.git"
+  },
+  "author": "erhant",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/erhant/blockchattin/issues"
   },
   "dependencies": {
     "@mantine/core": "^4.2.0",

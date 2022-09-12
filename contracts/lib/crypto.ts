@@ -35,7 +35,6 @@ export class CryptoMetaMask {
    */
   async encrypt(data: Buffer): Promise<Buffer> {
     // Public Key
-    //@ts-ignore
     const keyB64: string = (await this.RPC.request({
       method: 'eth_getEncryptionPublicKey',
       params: [this.ACCOUNT],
@@ -86,7 +85,6 @@ export class CryptoMetaMask {
     // Send request to MetaMask to decrypt the ciphertext
     // Once again application must have acces to the account
 
-    //@ts-ignore
     const decrypt = await this.RPC.request({
       method: 'eth_decrypt',
       params: [ct, this.ACCOUNT],

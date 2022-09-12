@@ -1,11 +1,9 @@
-import {ethers, network} from 'hardhat';
+import {ethers} from 'hardhat';
 import {expect} from 'chai';
-//@ts-ignore // the objects here are created by typechain
 import {Chat__factory, Chat} from '../types/typechain';
 import {SignerWithAddress} from '@nomiclabs/hardhat-ethers/signers';
-import {CryptoAES256, CryptoECIES, CryptoMetaMask, generateSecret} from '../lib/crypto';
+import {CryptoAES256, CryptoECIES, generateSecret} from '../lib/crypto';
 import {randomBytes} from 'crypto';
-import {parseEther} from 'ethers/lib/utils';
 import {BigNumber} from 'ethers';
 
 describe('Chat', async () => {
@@ -15,12 +13,12 @@ describe('Chat', async () => {
   let owner: SignerWithAddress;
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
-  let addrs: SignerWithAddress[];
+  let signers: SignerWithAddress[];
 
   // deploy the contract once
   before(async () => {
     const factory = (await ethers.getContractFactory('Chat')) as unknown as Chat__factory;
-    [owner, alice, bob, ...addrs] = await ethers.getSigners();
+    [owner, alice, bob, ...signers] = await ethers.getSigners();
     contract = await factory.deploy();
     await contract.deployed();
     expect(await contract.owner()).to.eq(owner.address);

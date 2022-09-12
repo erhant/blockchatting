@@ -28,13 +28,21 @@ contract Chat is Ownable {
   /// A shared secret between two users, encrypted by the public key of first user
   mapping(address => mapping(address => bytes)) public chatInitializations;
 
-  /// Check if a user initialization object is empty.
+  /**
+   * @notice Checks if a user has been initialized.
+   * @param user address
+   */
   function isUserInitialized(address user) public view returns (bool) {
     return
       !(userInitializations[user].encryptedUserSecret.length == 0 &&
         userInitializations[user].publicKeyX == bytes32(0));
   }
 
+  /**
+   * @notice Checks if two users has initialized their chat.
+   * @param initializer address
+   * @param peer address
+   */
   function isChatInitialized(address initializer, address peer) public view returns (bool) {
     return !(chatInitializations[initializer][peer].length == 0 && chatInitializations[peer][initializer].length == 0);
   }
@@ -49,11 +57,7 @@ contract Chat is Ownable {
     address to,
     uint256 time
   ) external {
-    // require(
-    //   (chatInitializations[msg.sender][_to] == chatInitializations[_to][msg.sender]) &&
-    //     chatInitializations[msg.sender][_to] != bytes32(0),
-    //   "Chat is not initialized with this user yet."
-    // );
+    require(isChatInitialized(msg.sender, to), 'Chat not initialized.');
     emit MessageSent(msg.sender, to, ciphertext, time);
   }
 
@@ -106,7 +110,7 @@ contract Chat is Ownable {
   }
 
   /**
-   * @notice Withdraw ether.
+   * @notice Transfers the balance of the contract to the owner.
    */
   function withdraw() external onlyOwner {
     payable(msg.sender).transfer(address(this).balance);

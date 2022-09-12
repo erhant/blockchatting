@@ -1,7 +1,7 @@
 {
-  "name": "contract-playground",
+  "name": "blockchattin-contracts",
   "version": "0.1.0",
-  "description": "A Hardhat project with TypeScript for playing around with smart contracts.",
+  "description": "Smart contract implementations and tests for Blockchattin.",
   "scripts": {
     "build": "yarn run clean && yarn run compile",
     "clean": "npx hardhat clean",
@@ -17,12 +17,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/erhant/contract-playground.git"
+    "url": "git+https://github.com/erhant/blockchattin.git"
   },
   "author": "erhant",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/erhant/contract-playground/issues"
+    "url": "https://github.com/erhant/blockchattin/issues"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.1.0",
