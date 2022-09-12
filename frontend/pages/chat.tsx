@@ -11,17 +11,25 @@ import { useChatContext } from "../context/chat.context"
 import NoWallet from "../components/no-wallet"
 import { CryptoECIES, CryptoMetaMask, CryptoAES256, generateSecret } from "../lib/crypto"
 import { parseEther } from "ethers/lib/utils"
+import { BigNumber } from "ethers"
 
 const CounterContractPage: NextPage = () => {
   const { wallet } = useWalletContext()
   const { contract } = useChatContext()
-  const [messages, setMessages] = useState([])
+  const [messages, setMessages] = useState<
+    {
+      from: string
+      to: string
+      message: string
+      time: number
+    }[]
+  >([])
   const [cryptoMetaMask, setCryptoMetaMask] = useState<CryptoMetaMask>()
   const [cryptoECIES, setCryptoECIES] = useState<CryptoECIES>()
   const [cryptoAES256, setCryptoAES256] = useState<CryptoAES256>()
   const [peerAddress, setPeerAddress] = useState<string>()
-  const isUserInitialized = cryptoECIES != undefined;
-  const isChatInitialized = cryptoAES256 != undefined;
+  const isUserInitialized = cryptoECIES != undefined
+  const isChatInitialized = cryptoAES256 != undefined
 
   const myAddress = wallet?.address || ""
 
@@ -138,6 +146,18 @@ const CounterContractPage: NextPage = () => {
     }
   }, [peerAddress, cryptoAES256])
 
+  async function handleSend() {
+    if (!contract || !isUserInitialized || !cryptoAES256) return
+    // TODO: get message from input
+    const message = "hello world."
+
+    contract
+      .sendMessage(cryptoAES256.encrypt(Buffer.from(message)).toString("hex"), peerAddress!, BigNumber.from(Date.now()))
+      .then(() => {
+        console.log("Message sent.")
+      })
+  }
+
   if (!contract) {
     return <NoWallet />
   } else {
@@ -147,10 +167,13 @@ const CounterContractPage: NextPage = () => {
 
         <Text>Your address: {myAddress}</Text>
         <Text>Peer address: {peerAddress}</Text>
-        <Text>Is Chat Initialized: {cryptoAES256 !== undefined ? "Yes" : "No"}</Text>
-        <Text>Is User Initialized: {cryptoECIES !== undefined ? "Yes" : "No"}</Text>
+        <Text>Is Chat Initialized: {isChatInitialized ? "Yes" : "No"}</Text>
+        <Text>Is User Initialized: {isUserInitialized ? "Yes" : "No"}</Text>
         <Divider />
-        {messages.map((m) => JSON.stringify(m))}
+        <Text>Messages:</Text>
+        {messages.map((m) => (
+          <Text>{m.message}</Text>
+        ))}
       </Layout>
     )
   }
