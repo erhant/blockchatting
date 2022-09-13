@@ -82,23 +82,11 @@ Why not use public key encryption for messaging? There are two good reasons:
 1. Alice would not be able to read her messages sent to Bob, as they are encrypted with Bob's public key.
 2. Asymmetric encryption is much slower than symmetric encryption.
 
-## Aliases
-
-Normally, messaging is done via addresses but users can buy Aliases too. The `price` is 0 for all aliases by default. A `fee` is taken from each purchase by the contract. So, to purchase an alias, users must pay at least `fee + price`:
-
-1. Alice buys **cats** alias for `fee + 1` ether.
-2. The `price` of **cats** is now `1`.
-3. Bob would like to buy **cats**, so he sends `fee + 2` to buy it.
-4. Alice is paid back `1` ether from her first purchase.
-
-The refunds are done via [PullPayment](https://docs.openzeppelin.com/contracts/2.x/api/payment#PullPayment). Note that Alice can also refund **cats** to get back her `1` ether; but the `fee` stays with the contract.
-
 ## Code Style
 
-- Uses GTS for TypeScript formatting and linting.
-- Uses OpenZeppelin contracts as a base.
-- Uses Solhint for Solidity linting.
-- Uses Hardhat+Solidity for Solidity formatting.
+- The frontend codes are formatted & linted with respect to [Google TypeScript Styleguide](https://google.github.io/styleguide/tsguide.html) using [GTS](https://github.com/google/gts).
+- SCSS codes are formatted by [SCSS Formatter](https://marketplace.visualstudio.com/items?itemName=sibiraj-s.vscode-scss-formatter).
+- The contract codes are formatted with [Solidity + Hardhat](https://hardhat.org/hardhat-vscode/docs/formatting). Solidity linter is [solhint](https://protofire.github.io/solhint).
 
 ## Running
 

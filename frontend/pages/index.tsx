@@ -1,7 +1,7 @@
-import type { NextPage } from "next"
-import Layout from "../components/layout"
-import { Text, Title, Anchor, Button, Group, Badge, Box } from "@mantine/core"
-import Link from "next/link"
+import type {NextPage} from 'next';
+import Layout from '../components/layout';
+import {Anchor, Button, Box} from '@mantine/core';
+import Link from 'next/link';
 
 const Home: NextPage = () => {
   return (
@@ -25,7 +25,7 @@ const Home: NextPage = () => {
         </Box>
       </>
     </Layout>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;

@@ -1,64 +1,59 @@
-import { NextPage } from "next"
-import { useWalletContext } from "../context/wallet.context"
-import { Chat__factory, Chat as ChatContract } from "../types/typechain/"
-import { useEffect, useState } from "react"
-import Layout from "../components/layout"
-import { Button, Text, Group, Title, Box, Divider } from "@mantine/core"
-import { notify, notifyError, notifyTransaction, notifyTransactionUpdate } from "../utils/notify"
-import { ArrowUpCircle, ArrowDownCircle, Refresh } from "tabler-icons-react"
-import { truncateAddress } from "../utils/utility"
-import { useChatContext } from "../context/chat.context"
-import NoWallet from "../components/no-wallet"
-import { CryptoECIES, CryptoMetaMask, CryptoAES256, generateSecret } from "../lib/crypto"
-import { parseEther } from "ethers/lib/utils"
-import { BigNumber } from "ethers"
+import {NextPage} from 'next';
+import {useWalletContext} from '../context/wallet.context';
+import {useEffect, useState} from 'react';
+import Layout from '../components/layout';
+import {Button, Text, Group, Title, Box, Divider} from '@mantine/core';
+import {useChatContext} from '../context/chat.context';
+import NoWallet from '../components/no-wallet';
+import {CryptoECIES, CryptoMetaMask, CryptoAES256, generateSecret} from '../lib/crypto';
+import {parseEther} from 'ethers/lib/utils';
+import {BigNumber} from 'ethers';
 
+type MessageType = {
+  from: string;
+  to: string;
+  message: string;
+  time: number;
+};
 const CounterContractPage: NextPage = () => {
-  const { wallet } = useWalletContext()
-  const { contract } = useChatContext()
-  const [messages, setMessages] = useState<
-    {
-      from: string
-      to: string
-      message: string
-      time: number
-    }[]
-  >([])
-  const [cryptoMetaMask, setCryptoMetaMask] = useState<CryptoMetaMask>()
-  const [cryptoECIES, setCryptoECIES] = useState<CryptoECIES>()
-  const [cryptoAES256, setCryptoAES256] = useState<CryptoAES256>()
-  const [peerAddress, setPeerAddress] = useState<string>()
-  const isUserInitialized = cryptoECIES != undefined
-  const isChatInitialized = cryptoAES256 != undefined
+  const {wallet} = useWalletContext();
+  const {contract} = useChatContext();
+  const [messages, setMessages] = useState<MessageType[]>([]);
+  const [cryptoMetaMask, setCryptoMetaMask] = useState<CryptoMetaMask>();
+  const [cryptoECIES, setCryptoECIES] = useState<CryptoECIES>();
+  const [cryptoAES256, setCryptoAES256] = useState<CryptoAES256>();
+  const [peerAddress, setPeerAddress] = useState<string>();
+  const isUserInitialized = cryptoECIES != undefined;
+  const isChatInitialized = cryptoAES256 != undefined;
 
-  const myAddress = wallet?.address || ""
+  const myAddress = wallet?.address || '';
 
   useEffect(() => {
-    setCryptoMetaMask(new CryptoMetaMask(myAddress, window.ethereum))
-  }, [wallet])
-  // on contract load, get the messages and subscribe to events
+    setCryptoMetaMask(new CryptoMetaMask(myAddress, window.ethereum));
+  }, [wallet]);
+
   useEffect(() => {
-    if (!contract || !cryptoMetaMask) return
+    if (!contract || !cryptoMetaMask) return;
 
     // everyone sees contract owner as the first peerAddress
-    contract.owner().then((o) => setPeerAddress(o))
+    contract.owner().then(o => setPeerAddress(o));
 
     // get initialization
-    contract.isUserInitialized(myAddress).then((isUserInitialized) => {
+    contract.isUserInitialized(myAddress).then(isUserInitialized => {
       if (isUserInitialized) {
         // retrieve and decrypt your secret
-        contract.userInitializations(myAddress).then((userInitialization) => {
-          const encryptedUserSecret = Buffer.from(userInitialization[0].slice(2), "hex")
-          cryptoMetaMask.decrypt(encryptedUserSecret).then((userSecret) => setCryptoECIES(new CryptoECIES(userSecret)))
-        })
+        contract.userInitializations(myAddress).then(userInitialization => {
+          const encryptedUserSecret = Buffer.from(userInitialization[0].slice(2), 'hex');
+          cryptoMetaMask.decrypt(encryptedUserSecret).then(userSecret => setCryptoECIES(new CryptoECIES(userSecret)));
+        });
       } else {
         // encrypt and store your secret
 
-        const entryFee = parseEther("0.1") // TODO: retrieve this from contract
-        const userSecret = generateSecret()
-        const publicKey = Buffer.from(new CryptoECIES(userSecret).getPublicKey(), "hex")
-        cryptoMetaMask.encrypt(userSecret).then((encryptedUserSecret) => {
-          console.log(userSecret, encryptedUserSecret)
+        const entryFee = parseEther('0.1'); // TODO: retrieve this from contract
+        const userSecret = generateSecret();
+        const publicKey = Buffer.from(new CryptoECIES(userSecret).getPublicKey(), 'hex');
+        cryptoMetaMask.encrypt(userSecret).then(encryptedUserSecret => {
+          console.log(userSecret, encryptedUserSecret);
           contract
             .initializeUser(
               encryptedUserSecret.toJSON().data, // this is supposed to be encrypted by MetaMask, but we dont do it in the test
@@ -69,58 +64,58 @@ const CounterContractPage: NextPage = () => {
               }
             )
             // TODO: call this from an event, instead of this promise
-            .then(() => setCryptoECIES(new CryptoECIES(userSecret)))
-        })
+            .then(() => setCryptoECIES(new CryptoECIES(userSecret)));
+        });
       }
-    })
+    });
 
     // TODO: get history of chat initializations to display them as a history of chatted users
 
     return () => {
       // unsubscribe from events
-      contract.removeAllListeners()
-      setPeerAddress(undefined)
-    }
-  }, [contract, cryptoMetaMask])
+      contract.removeAllListeners();
+      setPeerAddress(undefined);
+    };
+  }, [contract, cryptoMetaMask]);
 
-  useEffect(() => {
-    if (!peerAddress || !contract || !cryptoECIES) return
+  function initializeChat() {
+    if (!peerAddress || !contract || !cryptoECIES) return;
 
     // get peerAddress key
-    contract.isChatInitialized(myAddress, peerAddress).then((isChatInitialized) => {
+    contract.isChatInitialized(myAddress, peerAddress).then(isChatInitialized => {
       if (isChatInitialized) {
         // get chat secret
-        contract.chatInitializations(myAddress, peerAddress).then((chatSecretEncrypted) => {
-          const encryptedChatSecret = Buffer.from(chatSecretEncrypted.slice(2), "hex")
-          const chatSecret = cryptoECIES.decrypt(encryptedChatSecret)
-          setCryptoAES256(new CryptoAES256(chatSecret))
-        })
+        contract.chatInitializations(myAddress, peerAddress).then(chatSecretEncrypted => {
+          const encryptedChatSecret = Buffer.from(chatSecretEncrypted.slice(2), 'hex');
+          const chatSecret = cryptoECIES.decrypt(encryptedChatSecret);
+          setCryptoAES256(new CryptoAES256(chatSecret));
+        });
       } else {
-        const chatSecret = generateSecret()
+        const chatSecret = generateSecret();
         // encrypt with both keys
 
-        contract.userInitializations(peerAddress).then((userInitialization) => {
+        contract.userInitializations(peerAddress).then(userInitialization => {
           // encrypt for peerAddress
           const peerPublicKey = Buffer.from(
-            (userInitialization[1] ? "02" : "03") + userInitialization[2].slice(2),
-            "hex"
-          )
-          const chatSecretEncryptedForPeer = CryptoECIES.encrypt(peerPublicKey.toString("hex"), chatSecret)
+            (userInitialization[1] ? '02' : '03') + userInitialization[2].slice(2),
+            'hex'
+          );
+          const chatSecretEncryptedForPeer = CryptoECIES.encrypt(peerPublicKey.toString('hex'), chatSecret);
           // encrypt for yourself
-          const chatSecretEncryptedForMe = cryptoECIES.encrypt(chatSecret)
+          const chatSecretEncryptedForMe = cryptoECIES.encrypt(chatSecret);
 
           // initialize chat and update state
           contract.initializeChat(chatSecretEncryptedForMe, chatSecretEncryptedForPeer, peerAddress).then(() => {
             // TODO: call this from an event, instead of this promise
-            setCryptoAES256(new CryptoAES256(chatSecret))
-          })
-        })
+            setCryptoAES256(new CryptoAES256(chatSecret));
+          });
+        });
       }
-    })
-  }, [peerAddress, contract])
+    });
+  }
 
   useEffect(() => {
-    if (!peerAddress || !contract || !cryptoAES256) return
+    if (!peerAddress || !contract || !cryptoAES256) return;
 
     // get messages
     Promise.all([
@@ -128,38 +123,42 @@ const CounterContractPage: NextPage = () => {
       contract.queryFilter(contract.filters.MessageSent(peerAddress, myAddress)),
     ]).then(([msgFromMe, msgToMe]) => {
       // sort messages by block number
-      const msgs = msgFromMe
+      const msgs: MessageType[] = msgFromMe
         .concat(msgToMe)
         // TODO: is this right?
         .sort((a, b) => (a.args._time.lt(b.args._time) ? 1 : -1))
-        .map((msgEvent) => ({
+        .map(msgEvent => ({
           from: msgEvent.args._from,
           to: msgEvent.args._from,
-          message: cryptoAES256.decrypt(Buffer.from(msgEvent.args._message)), // TODO decrypt here
+          message: cryptoAES256.decrypt(Buffer.from(msgEvent.args._message, 'hex')).toString('hex'), // TODO decrypt here
           time: msgEvent.args._time.toNumber(),
-        }))
+        }));
       // decrypt messages
-    })
+    });
 
     return () => {
-      setCryptoAES256(undefined)
-    }
-  }, [peerAddress, cryptoAES256])
+      setCryptoAES256(undefined);
+    };
+  }, [peerAddress, cryptoAES256]);
 
-  async function handleSend() {
-    if (!contract || !isUserInitialized || !cryptoAES256) return
+  async function handleSendMessage() {
+    if (!contract || !isUserInitialized || !cryptoAES256) return;
     // TODO: get message from input
-    const message = "hello world."
+    const message = 'hello world.';
 
     contract
-      .sendMessage(cryptoAES256.encrypt(Buffer.from(message)).toString("hex"), peerAddress!, BigNumber.from(Date.now()))
+      .sendMessage(cryptoAES256.encrypt(Buffer.from(message)).toString('hex'), peerAddress!, BigNumber.from(Date.now()))
       .then(() => {
-        console.log("Message sent.")
-      })
+        console.log('Message sent.');
+      });
+  }
+
+  async function handleSetPeer() {
+    setPeerAddress(myAddress); // TODO: for demo purposes
   }
 
   if (!contract) {
-    return <NoWallet />
+    return <NoWallet />;
   } else {
     return (
       <Layout>
@@ -167,16 +166,20 @@ const CounterContractPage: NextPage = () => {
 
         <Text>Your address: {myAddress}</Text>
         <Text>Peer address: {peerAddress}</Text>
-        <Text>Is Chat Initialized: {isChatInitialized ? "Yes" : "No"}</Text>
-        <Text>Is User Initialized: {isUserInitialized ? "Yes" : "No"}</Text>
+        <Text>Is Chat Initialized: {isChatInitialized ? 'Yes' : 'No'}</Text>
+        <Text>Is User Initialized: {isUserInitialized ? 'Yes' : 'No'}</Text>
+        <Divider />
+        <Button onClick={() => handleSetPeer()}>Set Peer</Button>
+        <Button onClick={() => handleSendMessage()}>Send Message</Button>
+        <Button onClick={() => initializeChat()}>Initialize Chat</Button>
         <Divider />
         <Text>Messages:</Text>
-        {messages.map((m) => (
+        {messages.map(m => (
           <Text>{m.message}</Text>
         ))}
       </Layout>
-    )
+    );
   }
-}
+};
 
-export default CounterContractPage
+export default CounterContractPage;

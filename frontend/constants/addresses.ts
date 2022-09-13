@@ -1,14 +1,14 @@
-import { ethers } from "ethers"
+import {ethers} from 'ethers';
 
 /**
  * Contract addresses for each ChainID. These can also be read from .env
  */
-const contractAddresses: Readonly<{ [contractName: string]: { [chainId: number]: string | undefined } }> = {
+const contractAddresses: Readonly<{[contractName: string]: {[chainId: number]: string | undefined}}> = {
   Chat: {
-    31337: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-    4: "0x7C9f4AA2fe39c7F5E9E18626D2CDF577af12a47D",
+    31337: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+    4: '0x7C9f4AA2fe39c7F5E9E18626D2CDF577af12a47D',
   },
-}
+};
 
 /**
  * Gets the contract address, with respect to the contract name and chainId.
@@ -23,18 +23,18 @@ const contractAddresses: Readonly<{ [contractName: string]: { [chainId: number]:
  */
 function getContractAddress(contractName: string, chainId: number): string {
   // check if contract name is in the list
-  if (!(contractName in contractAddresses)) throw new Error("No such contract: " + contractName)
+  if (!(contractName in contractAddresses)) throw new Error('No such contract: ' + contractName);
 
   // check if contract address is added
-  if (!(chainId in contractAddresses[contractName])) throw new Error("Contract not in chainId: " + chainId)
+  if (!(chainId in contractAddresses[contractName])) throw new Error('Contract not in chainId: ' + chainId);
 
-  const addr = contractAddresses[contractName][chainId]
+  const addr = contractAddresses[contractName][chainId];
 
   // you might intentionally set address to undefined during development
-  if (addr == undefined) throw new Error("Address not yet defined.")
-  if (!ethers.utils.isAddress(addr)) throw new Error("Invalid address format.")
+  if (addr == undefined) throw new Error('Address not yet defined.');
+  if (!ethers.utils.isAddress(addr)) throw new Error('Invalid address format.');
 
-  return addr
+  return addr;
 }
 
-export default getContractAddress
+export default getContractAddress;

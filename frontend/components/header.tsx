@@ -1,26 +1,26 @@
-import { Box, Container, Text, Group } from "@mantine/core"
-import ThemeToggleButton from "./buttons/theme-toggle-button"
-import WalletConnectionButton from "./buttons/wallet-connection-button"
-import Link from "next/link"
-import WalletDisplayButton from "./buttons/wallet-display-button"
-import { FC } from "react"
+import {Box, Container, Text, Group} from '@mantine/core';
+import ThemeToggleButton from './theme-toggle-button';
+import WalletConnectionButton from './wallet-connection-button';
+import Link from 'next/link';
+import WalletDisplayButton from './wallet-display-button';
+import {FC} from 'react';
 
 const Header: FC = () => {
   return (
-    <Box component="header" py="md" sx={{ textAlign: "center", borderBottom: "1px solid lightgray" }}>
+    <Box component="header">
       <Container>
         <Group>
           <Text
             variant="gradient"
-            gradient={{ from: "primary", to: "secondary", deg: 45 }}
-            sx={{ fontSize: "1.5em", fontWeight: 800 }}
+            gradient={{from: 'primary', to: 'secondary', deg: 45}}
+            sx={{fontSize: '1.5em', fontWeight: 800}}
             inline
           >
-            <Link href="/">NextJS + Web3</Link>
+            <Link href="/">Blockchattin</Link>
           </Text>
 
           {/* pushes the succeeding contents to the right */}
-          <span style={{ flexGrow: 1 }} />
+          <span style={{flexGrow: 1}} />
 
           <WalletConnectionButton />
           <WalletDisplayButton />
@@ -28,7 +28,7 @@ const Header: FC = () => {
         </Group>
       </Container>
     </Box>
-  )
-}
+  );
+};
 
-export default Header
+export default Header;
