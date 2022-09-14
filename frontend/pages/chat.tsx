@@ -2,7 +2,7 @@ import {NextPage} from 'next';
 import {useWalletContext} from '../context/wallet.context';
 import {useEffect, useState} from 'react';
 import Layout from '../components/layout';
-import {Button, Text, Group, Title, Box, Divider} from '@mantine/core';
+import {Button, Text, Group, Title, Box, Divider, Grid, Stack} from '@mantine/core';
 import {useChatContext} from '../context/chat.context';
 import NoWallet from '../components/no-wallet';
 import {CryptoECIES, CryptoMetaMask, CryptoAES256, generateSecret} from '../lib/crypto';
@@ -46,26 +46,6 @@ const CounterContractPage: NextPage = () => {
           const encryptedUserSecret = Buffer.from(userInitialization[0].slice(2), 'hex');
           cryptoMetaMask.decrypt(encryptedUserSecret).then(userSecret => setCryptoECIES(new CryptoECIES(userSecret)));
         });
-      } else {
-        // encrypt and store your secret
-
-        const entryFee = parseEther('0.1'); // TODO: retrieve this from contract
-        const userSecret = generateSecret();
-        const publicKey = Buffer.from(new CryptoECIES(userSecret).getPublicKey(), 'hex');
-        cryptoMetaMask.encrypt(userSecret).then(encryptedUserSecret => {
-          console.log(userSecret, encryptedUserSecret);
-          contract
-            .initializeUser(
-              encryptedUserSecret.toJSON().data, // this is supposed to be encrypted by MetaMask, but we dont do it in the test
-              publicKey[0] == 2, // prefix
-              publicKey.slice(1).toJSON().data, // 32 bytes
-              {
-                value: entryFee,
-              }
-            )
-            // TODO: call this from an event, instead of this promise
-            .then(() => setCryptoECIES(new CryptoECIES(userSecret)));
-        });
       }
     });
 
@@ -77,6 +57,28 @@ const CounterContractPage: NextPage = () => {
       setPeerAddress(undefined);
     };
   }, [contract, cryptoMetaMask]);
+
+  function initializeUser() {
+    if (!contract || !cryptoMetaMask) return;
+    // encrypt and store your secret
+    const entryFee = parseEther('0.1'); // TODO: retrieve this from contract
+    const userSecret = generateSecret();
+    const publicKey = Buffer.from(new CryptoECIES(userSecret).getPublicKey(), 'hex');
+    cryptoMetaMask.encrypt(userSecret).then(encryptedUserSecret => {
+      console.log(userSecret, encryptedUserSecret);
+      contract
+        .initializeUser(
+          encryptedUserSecret.toJSON().data, // this is supposed to be encrypted by MetaMask, but we dont do it in the test
+          publicKey[0] == 2, // prefix
+          publicKey.slice(1).toJSON().data, // 32 bytes
+          {
+            value: entryFee,
+          }
+        )
+        // TODO: call this from an event, instead of this promise
+        .then(() => setCryptoECIES(new CryptoECIES(userSecret)));
+    });
+  }
 
   function initializeChat() {
     if (!peerAddress || !contract || !cryptoECIES) return;
@@ -160,25 +162,36 @@ const CounterContractPage: NextPage = () => {
   if (!contract) {
     return <NoWallet />;
   } else {
-    return (
-      <Layout>
-        <Divider />
+    if (isUserInitialized) {
+      return (
+        <Layout>
+          <Grid>
+            <Grid.Col xs={3}>
+              {/* show my profile */}
+              <Stack>
+                <Text>{myAddress}</Text>
+              </Stack>
 
-        <Text>Your address: {myAddress}</Text>
-        <Text>Peer address: {peerAddress}</Text>
-        <Text>Is Chat Initialized: {isChatInitialized ? 'Yes' : 'No'}</Text>
-        <Text>Is User Initialized: {isUserInitialized ? 'Yes' : 'No'}</Text>
-        <Divider />
-        <Button onClick={() => handleSetPeer()}>Set Peer</Button>
-        <Button onClick={() => handleSendMessage()}>Send Message</Button>
-        <Button onClick={() => initializeChat()}>Initialize Chat</Button>
-        <Divider />
-        <Text>Messages:</Text>
-        {messages.map(m => (
-          <Text>{m.message}</Text>
-        ))}
-      </Layout>
-    );
+              {/* show chat history */}
+              {/* TODO */}
+
+              {/* enter peer address here */}
+            </Grid.Col>
+            <Grid.Col xs={9}>Chat soon</Grid.Col>
+          </Grid>
+        </Layout>
+      );
+    } else {
+      return (
+        // make this part in steps: (use Stepper)
+        // 1. checking if user is initialized
+        // 2. retrieving secret / creating key-pair
+
+        <Layout>
+          <Button onClick={initializeUser}>Initialize User</Button>
+        </Layout>
+      );
+    }
   }
 };
 

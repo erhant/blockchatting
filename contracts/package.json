@@ -13,7 +13,9 @@
     "fix": "gts fix",
     "prepare": "cd .. && husky install ./contracts/.husky",
     "pretest": "yarn run compile",
-    "posttest": "yarn run lint"
+    "posttest": "yarn run lint",
+    "node:prep": "npx hardhat run ./scripts/Chat.deploy.ts --network localhost",
+    "node:start": "npx hardhat node"
   },
   "repository": {
     "type": "git",
