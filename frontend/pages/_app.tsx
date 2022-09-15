@@ -9,6 +9,7 @@ import {MantineProvider, ColorScheme, ColorSchemeProvider} from '@mantine/core';
 import {WalletContextWrapper} from '../context/wallet.context';
 import {NotificationsProvider} from '@mantine/notifications';
 import {ChatContextWrapper} from '../context/chat.context';
+import ThemeToggleButton from '../components/theme-toggle-button';
 
 export default function App(props: AppProps & {colorScheme: ColorScheme}) {
   const {Component, pageProps} = props;
@@ -49,6 +50,7 @@ export default function App(props: AppProps & {colorScheme: ColorScheme}) {
           <WalletContextWrapper>
             <ChatContextWrapper>
               <NotificationsProvider>
+                <ThemeToggleButton />
                 <Component {...pageProps} />
               </NotificationsProvider>
             </ChatContextWrapper>

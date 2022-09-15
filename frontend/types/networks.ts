@@ -1,9 +1,9 @@
 export type NetworkInfoType = {
-  chainName: string
+  chainName: string;
   nativeCurrency: {
-    name: string
-    decimals: number
-    symbol: string
-  }
-  iconURL: string
-}
+    name: string;
+    decimals: number;
+    symbol: string;
+  };
+  iconURL: string;
+};

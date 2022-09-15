@@ -17,8 +17,8 @@ contract Chat is Ownable {
 
   event MessageSent(address indexed _from, address indexed _to, string _message, uint256 _time);
   event EntryFeeChanged(uint256 amount);
-  event UserInitialized(address user);
-  event ChatInitialized(address initializer, address peer);
+  event UserInitialized(address indexed user);
+  event ChatInitialized(address indexed initializer, address indexed peer);
 
   uint256 public entryFee = 0.1 ether;
 

@@ -15,16 +15,16 @@ type MessageType = {
   message: string;
   time: number;
 };
-const CounterContractPage: NextPage = () => {
+const ChatPage: NextPage = () => {
   const {wallet} = useWalletContext();
   const {contract} = useChatContext();
-  const [messages, setMessages] = useState<MessageType[]>([]);
+
   const [cryptoMetaMask, setCryptoMetaMask] = useState<CryptoMetaMask>();
   const [cryptoECIES, setCryptoECIES] = useState<CryptoECIES>();
   const [cryptoAES256, setCryptoAES256] = useState<CryptoAES256>();
   const [peerAddress, setPeerAddress] = useState<string>();
-  const isUserInitialized = cryptoECIES != undefined;
-  const isChatInitialized = cryptoAES256 != undefined;
+  const isUserInitialized: boolean = cryptoECIES != undefined;
+  const isChatInitialized: boolean = cryptoAES256 != undefined;
 
   const myAddress = wallet?.address || '';
 
@@ -195,4 +195,4 @@ const CounterContractPage: NextPage = () => {
   }
 };
 
-export default CounterContractPage;
+export default ChatPage;
