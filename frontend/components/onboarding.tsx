@@ -5,6 +5,7 @@ import {Chat} from '../types/typechain';
 import {CryptoECIES, CryptoMetaMask, generateSecret} from '../lib/crypto';
 import {WalletType} from '../types/wallet';
 import Dashboard from './dashboard';
+import {notifyError, notifyTransaction, notifyTransactionUpdate} from '../utils/notify';
 
 enum OnboardStatus {
   CHECKING = 0,
@@ -28,7 +29,6 @@ const Onboarding: FC<{wallet: WalletType}> = ({wallet}) => {
     setActiveStep(OnboardStatus.INITIALIZING);
 
     if (isUserInitialized) {
-      console.log('User already initialized');
       const userInitialization = await contract.userInitializations(wallet.address);
 
       // retrieve secret
@@ -36,42 +36,56 @@ const Onboarding: FC<{wallet: WalletType}> = ({wallet}) => {
 
       // decrypt with your metamask
       setIsLoading(true);
-      const cryptoMetaMask = new CryptoMetaMask(wallet.address, window.ethereum);
-      const userSecret = await cryptoMetaMask.decrypt(encryptedUserSecret);
-      setUserScheme(new CryptoECIES(userSecret));
-      setActiveStep(OnboardStatus.FETCHING);
-    } else console.log('User not initialized');
+      try {
+        const userSecret = await new CryptoMetaMask(wallet.address, window.ethereum).decrypt(encryptedUserSecret);
+        setUserScheme(new CryptoECIES(userSecret));
+        setActiveStep(OnboardStatus.FETCHING);
+      } catch (e) {
+        notifyError(e, 'Could not decrypt.');
+      }
+    }
 
     setIsLoading(false);
   }
 
   async function initializeUser(contract: Chat) {
-    const cryptoMetaMask = new CryptoMetaMask(wallet.address, window.ethereum);
     // encrypt and store your secret
     const userSecret = generateSecret();
     const publicKey = Buffer.from(new CryptoECIES(userSecret).getPublicKey(), 'hex');
 
     setIsLoading(true);
-    const encryptedUserSecret = await cryptoMetaMask.encrypt(userSecret);
-    console.log(userSecret, encryptedUserSecret);
-    await contract.initializeUser(
-      encryptedUserSecret.toJSON().data, // this is supposed to be encrypted by MetaMask, but we dont do it in the test
-      publicKey[0] == 2, // prefix
-      publicKey.slice(1).toJSON().data, // 32 bytes
-      {
-        value: await contract.entryFee(), // entry fee retrieved from contract
+    try {
+      const encryptedUserSecret = await new CryptoMetaMask(wallet.address, window.ethereum).encrypt(userSecret);
+      try {
+        const tx = await contract.initializeUser(
+          encryptedUserSecret.toJSON().data,
+          publicKey[0] == 2, // public key prefix
+          publicKey.slice(1).toJSON().data,
+          {
+            value: await contract.entryFee(), // entry fee retrieved from contract
+          }
+        );
+        const txID = notifyTransaction(tx);
+        await tx.wait();
+        notifyTransactionUpdate(txID, 'User initialized!');
+        setUserScheme(new CryptoECIES(userSecret));
+        setActiveStep(OnboardStatus.FETCHING);
+      } catch (e) {
+        notifyError(e, 'Could not initialize user.');
       }
-    );
-    setUserScheme(new CryptoECIES(userSecret));
-    setActiveStep(OnboardStatus.FETCHING);
+    } catch (e) {
+      notifyError(e, 'Could not encrypt.');
+    }
+
     setIsLoading(false);
   }
 
   async function loadChatHistory(contract: Chat) {
-    const history1 = await contract.queryFilter(contract.filters.ChatInitialized(wallet.address, null));
-    const history2 = await contract.queryFilter(contract.filters.ChatInitialized(null, wallet.address));
-    console.log('HISTORY:', history1.concat(...history2));
-    setPreviousPeers(history1.concat(...history2).map(h => h.args[0]));
+    const [chatFromMe, chatFromThem] = await Promise.all([
+      contract.queryFilter(contract.filters.ChatInitialized(wallet.address, null)),
+      contract.queryFilter(contract.filters.ChatInitialized(null, wallet.address)),
+    ]);
+    setPreviousPeers(chatFromMe.map(h => h.args.peer).concat(chatFromThem.map(h => h.args.initializer)));
   }
 
   return !(previousPeers && userScheme) ? (

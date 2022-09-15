@@ -6,7 +6,7 @@ import {Chat} from '../types/typechain';
 import {CryptoAES256, CryptoECIES, generateSecret} from '../lib/crypto';
 import {truncateAddress} from '../utils/utility';
 import {ethers} from 'ethers';
-import {notify} from '../utils/notify';
+import {notify, notifyError, notifyTransaction, notifyTransactionUpdate} from '../utils/notify';
 import MessagingBoard from './messaging-board';
 
 // Dashboard is the main page, there is no header here. Just like Whatsapp
@@ -46,6 +46,9 @@ const Dashboard: FC<{myAddress: string; contract: Chat; userScheme: CryptoECIES;
     }
   }
 
+  /**
+   *
+   */
   async function initializeChat(peerAddress: string) {
     // generate secret from chat scheme
     const chatSecret = generateSecret();
@@ -59,8 +62,15 @@ const Dashboard: FC<{myAddress: string; contract: Chat; userScheme: CryptoECIES;
     const chatSecretEncryptedForMe = userScheme.encrypt(chatSecret);
 
     // initialize chat and update state
-    await contract.initializeChat(chatSecretEncryptedForMe, chatSecretEncryptedForPeer, peerAddress);
-    setChatScheme(new CryptoAES256(chatSecret));
+    try {
+      const tx = await contract.initializeChat(chatSecretEncryptedForMe, chatSecretEncryptedForPeer, peerAddress);
+      const txID = notifyTransaction(tx);
+      await tx.wait();
+      notifyTransactionUpdate(txID, 'Chat initialized!', 'success');
+      setChatScheme(new CryptoAES256(chatSecret));
+    } catch (e) {
+      notifyError(e, 'Could not initialize chat.');
+    }
   }
 
   return (

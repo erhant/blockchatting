@@ -20,7 +20,7 @@ contract Chat is Ownable {
   event UserInitialized(address indexed user);
   event ChatInitialized(address indexed initializer, address indexed peer);
 
-  uint256 public entryFee = 0.1 ether;
+  uint256 public entryFee = 0.01 ether;
 
   /// Mapping of user to their initialization object
   mapping(address => UserInitialization) public userInitializations;

@@ -1,41 +1,49 @@
 import {expect} from 'chai';
-import {CryptoECIES, generateSecret} from '../lib/crypto';
+import {CryptoAES256, CryptoECIES, generateSecret} from '../lib/crypto';
 
-describe('CryptoECIES tests', async () => {
-  it('should encrypt correctly', async () => {
-    const crypto: CryptoECIES = new CryptoECIES(generateSecret());
-    const plaintext = Buffer.from('hey hey there.');
-    const ciphertext = crypto.encrypt(plaintext);
+describe('Crypto tests', () => {
+  describe('ECIES', () => {
+    let secret: Buffer;
+    let cryptoScheme: CryptoECIES;
+    let plaintext: Buffer;
 
-    // console.log(crypto.getPublicKey().length)
-    // console.log(Buffer.from(crypto.getPublicKey(), "hex"))
-    // console.log(Buffer.from(crypto.getPublicKey(), "hex").byteLength)
-    // console.log(Buffer.from(crypto.getPublicKey(), "hex").length)
-    // console.log(Buffer.from(crypto.getPublicKey(), "hex").toJSON().data)
-    // console.log(Buffer.from(crypto.getPublicKey(), "hex").toJSON().data.length)
-    expect(plaintext.equals(ciphertext)).to.be.not.true;
+    before(() => {
+      secret = generateSecret();
+      plaintext = generateSecret(); // also generate a random message
+      cryptoScheme = new CryptoECIES(secret);
+    });
+
+    it('should encrypt & decrypt correctly', async () => {
+      const ciphertext = cryptoScheme.encrypt(plaintext);
+      expect(plaintext.equals(ciphertext)).to.be.not.true;
+      const plaintext2 = cryptoScheme.decrypt(ciphertext);
+      expect(plaintext.equals(plaintext2)).to.be.true;
+    });
+
+    it('should generate same keypair for the same secret', async () => {
+      const newCryptoScheme = new CryptoECIES(secret);
+      const ciphertext = cryptoScheme.encrypt(plaintext);
+      const plaintext2 = newCryptoScheme.decrypt(ciphertext);
+      expect(plaintext.equals(plaintext2)).to.be.true;
+    });
   });
 
-  it('should decrypt correctly', async () => {
-    const crypto: CryptoECIES = new CryptoECIES(generateSecret());
-    const plaintext = Buffer.from('hey hey there.');
-    const ciphertext = crypto.encrypt(plaintext);
+  describe('AES256', () => {
+    let key: Buffer;
+    let cryptoScheme: CryptoAES256;
+    let plaintext: Buffer;
 
-    const plaintext2 = crypto.decrypt(ciphertext);
-    expect(plaintext.equals(plaintext2)).to.be.true;
-  });
+    before(() => {
+      key = generateSecret();
+      plaintext = generateSecret(); // also generate a random message
+      cryptoScheme = new CryptoAES256(key);
+    });
 
-  it('should generate same keypair for the same secret', async () => {
-    const secret = generateSecret();
-    const crypto1: CryptoECIES = new CryptoECIES(secret);
-    const crypto2: CryptoECIES = new CryptoECIES(secret);
-
-    // encrypt with the first CryptoECIES
-    const plaintext = Buffer.from('hey hey there.');
-    const ciphertext = crypto1.encrypt(plaintext);
-
-    // decrypt with the second CryptoECIES
-    const plaintext2 = crypto2.decrypt(ciphertext);
-    expect(plaintext.equals(plaintext2)).to.be.true;
+    it('should encrypt & decrypt correctly', async () => {
+      const ciphertext = cryptoScheme.encrypt(plaintext);
+      expect(plaintext.equals(ciphertext)).to.be.not.true;
+      const plaintext2 = cryptoScheme.decrypt(ciphertext);
+      expect(plaintext.equals(plaintext2)).to.be.true;
+    });
   });
 });
