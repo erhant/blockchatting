@@ -88,6 +88,10 @@ Why not use public key encryption for messaging? There are two good reasons:
 - SCSS codes are formatted by [SCSS Formatter](https://marketplace.visualstudio.com/items?itemName=sibiraj-s.vscode-scss-formatter).
 - The contract codes are formatted with [Solidity + Hardhat](https://hardhat.org/hardhat-vscode/docs/formatting). Solidity linter is [solhint](https://protofire.github.io/solhint).
 
+## UI
+
+Deterministically random avatars and names are generated from addresses. These are not customisable, and are for UI purposes alone. Furthermore, it is easier for a user to recognize a peer w.r.t their avatar & name rather than their address.
+
 ## Running
 
 Run `npx hardhat node` at a separate terminal, and then run `npx hardhat run ./scripts/Chat.deploy.ts --network localhost` to deploy the contract. Launch the frontend with `yarn run dev`.

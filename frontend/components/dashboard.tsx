@@ -8,6 +8,7 @@ import {truncateAddress} from '../utils/utility';
 import {ethers} from 'ethers';
 import {notify, notifyError, notifyTransaction, notifyTransactionUpdate} from '../utils/notify';
 import MessagingBoard from './messaging-board';
+import ProfileView from './profile-view';
 
 // Dashboard is the main page, there is no header here. Just like Whatsapp
 // User initialization is passed as a prop here
@@ -21,28 +22,22 @@ const Dashboard: FC<{myAddress: string; contract: Chat; userScheme: CryptoECIES;
   const [peerAddress, setPeerAddress] = useState<string>();
   const [chatScheme, setChatScheme] = useState<CryptoAES256>();
 
-  async function setPeer() {
+  async function setPeer(peer: string) {
     // check peer address
-    if (!ethers.utils.isAddress(peerAddressInput)) {
-      notify('Incorrect Address', `${peerAddressInput} is not a valid address.`, 'error');
+    if (!ethers.utils.isAddress(peer)) {
+      notify('Incorrect Address', `${peer} is not a valid address.`, 'error');
       return;
-    } else {
-      setPeerAddress(peerAddressInput);
     }
+    setPeerAddress(peer);
 
     // check initialization
     setChatScheme(undefined);
-    const isChatInitialized = await contract.isChatInitialized(myAddress, peerAddressInput);
-
+    const isChatInitialized = await contract.isChatInitialized(myAddress, peer);
     if (isChatInitialized) {
-      // setup chat secret
-      const chatSecretEncrypted = await contract.chatInitializations(myAddress, peerAddressInput);
+      const chatSecretEncrypted = await contract.chatInitializations(myAddress, peer);
       const encryptedChatSecret = Buffer.from(chatSecretEncrypted.slice(2), 'hex');
       const chatSecret = userScheme.decrypt(encryptedChatSecret);
       setChatScheme(new CryptoAES256(chatSecret));
-
-      // load messages & subscribe
-      // TODO
     }
   }
 
@@ -76,41 +71,55 @@ const Dashboard: FC<{myAddress: string; contract: Chat; userScheme: CryptoECIES;
   return (
     <Box sx={{width: '50vw', height: '90vh'}}>
       <Grid>
-        <Grid.Col xs={4}>
+        <Grid.Col xs={5}>
           {/* show my profile */}
-          <Stack sx={{backgroundColor: 'whitesmoke'}}>
-            <Text>{truncateAddress(myAddress)}</Text>
-            <Text>This is you.</Text>
-          </Stack>
+          <Title order={3}>You</Title>
+          <ProfileView
+            address={myAddress}
+            isMe={true}
+            onClick={() => {
+              setPeer(myAddress);
+            }}
+          />
 
           {/* show previous chat peers */}
-          <Text>Chat History</Text>
-          {previousPeers.map((peer, i) => (
-            <Box key={i} py="sm" sx={{border: '1px solid gray'}}>
-              <Text>{truncateAddress(peer)}</Text>
-            </Box>
-          ))}
+          <Title order={3}>Peers</Title>
+          {previousPeers.length > 0 ? (
+            previousPeers.map(
+              (peer, i) =>
+                peer != myAddress && (
+                  <ProfileView
+                    key={i}
+                    address={peer}
+                    isMe={false}
+                    onClick={() => {
+                      setPeer(peer);
+                    }}
+                  />
+                )
+            )
+          ) : (
+            <Text>You have not chatted with anyone yet!</Text>
+          )}
 
           {/* enter peer address here */}
           <TextInput
-            placeholder="peer address"
+            label="New Peer"
+            placeholder="address"
             value={peerAddressInput}
             onChange={event => setPeerAddressInput(event.currentTarget.value)}
             rightSection={
-              <Button size="xs" onClick={() => setPeer()}>
+              <Button size="xs" onClick={() => setPeer(peerAddressInput)}>
                 Go
               </Button>
             }
           />
         </Grid.Col>
-        <Grid.Col xs={8}>
+        <Grid.Col xs={7}>
           {peerAddress ? (
             // peer address is here, but we do not know if it is initialized or not
             <>
-              <Stack sx={{backgroundColor: 'whitesmoke'}}>
-                <Text>{truncateAddress(peerAddress)}</Text>
-                <Text>This is your peer.</Text>
-              </Stack>
+              <ProfileView address={peerAddress} isMe={peerAddress == myAddress} />
               {chatScheme ? (
                 // we have the chat secret
                 <MessagingBoard

@@ -10,7 +10,7 @@ const Layout: FC<{
     <div className={styles['layout']}>
       {/* <Header /> */}
       {centered && <div style={{flexGrow: 1}} />}
-      <Container>{children}</Container>
+      <Container size="xl">{children}</Container>
       <div style={{flexGrow: 1}} />
       {/* <Footer /> */}
     </div>
