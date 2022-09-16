@@ -1,4 +1,4 @@
-import {Box, Container, Text, Group, Grid, Stack, TextInput, Button, Title} from '@mantine/core';
+import {Box, Container, Text, Group, Grid, Stack, TextInput, Button, Title, Divider} from '@mantine/core';
 import ThemeToggleButton from './theme-toggle-button';
 import Link from 'next/link';
 import {FC, useState} from 'react';
@@ -42,7 +42,7 @@ const Dashboard: FC<{myAddress: string; contract: Chat; userScheme: CryptoECIES;
   }
 
   /**
-   *
+   * Initializes a chat session with a peer. This is done by
    */
   async function initializeChat(peerAddress: string) {
     // generate secret from chat scheme
@@ -81,6 +81,7 @@ const Dashboard: FC<{myAddress: string; contract: Chat; userScheme: CryptoECIES;
               setPeer(myAddress);
             }}
           />
+          <Divider />
 
           {/* show previous chat peers */}
           <Title order={3}>Peers</Title>
@@ -116,10 +117,12 @@ const Dashboard: FC<{myAddress: string; contract: Chat; userScheme: CryptoECIES;
           />
         </Grid.Col>
         <Grid.Col xs={7}>
+          <Title order={3}>Chat</Title>
           {peerAddress ? (
             // peer address is here, but we do not know if it is initialized or not
             <>
               <ProfileView address={peerAddress} isMe={peerAddress == myAddress} />
+              <Divider />
               {chatScheme ? (
                 // we have the chat secret
                 <MessagingBoard

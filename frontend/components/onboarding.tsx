@@ -91,16 +91,16 @@ const Onboarding: FC<{wallet: WalletType}> = ({wallet}) => {
         const txID = notifyTransaction(tx);
         await tx.wait();
         notifyTransactionUpdate(txID, 'User initialized!');
-        setUserScheme(new CryptoECIES(userSecret));
-        setActiveStep(OnboardStatus.FETCHING);
       } catch (e) {
-        notifyError(e, 'Could not initialize user.');
+        return notifyError(e, 'Could not initialize user.');
       }
     } catch (e) {
-      notifyError(e, 'Could not encrypt.');
+      return notifyError(e, 'Could not encrypt.');
     }
 
     setIsLoading(false);
+    setUserScheme(new CryptoECIES(userSecret));
+    setActiveStep(OnboardStatus.FETCHING);
   }
 
   useEffect(() => {

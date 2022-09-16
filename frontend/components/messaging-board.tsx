@@ -34,8 +34,8 @@ const MessagingBoard: FC<{myAddress: string; peerAddress: string; contract: Chat
     ]);
 
     // sort messages by block number
-    const msgs: MessageType[] = msgFromMe
-      .concat(msgToMe)
+    const msgsRaw = myAddress == peerAddress ? msgFromMe : msgFromMe.concat(msgToMe);
+    const msgs: MessageType[] = msgsRaw
       .sort((a, b) => (a.args._time.lt(b.args._time) ? -1 : 1))
       .map(msgEvent => ({
         own: msgEvent.args._from == myAddress,
@@ -67,10 +67,14 @@ const MessagingBoard: FC<{myAddress: string; peerAddress: string; contract: Chat
   return (
     <Box>
       <Stack>
-        {messages ? (
-          messages.map((m, i) => <Message key={i} own={m.own} time={m.time.toLocaleString('tr')} text={m.message} />)
+        {messages.length > 0 ? (
+          messages.map((m, i) => (
+            <Message key={i} own={m.own} time={new Date(m.time).toLocaleTimeString('tr')} text={m.message} />
+          ))
         ) : (
-          <Text>No messages yet.</Text>
+          <Text my="md" color="dimmed">
+            No messages yet.
+          </Text>
         )}
       </Stack>
       <Divider />

@@ -1,4 +1,4 @@
-import {Container, Group, Text} from '@mantine/core';
+import {Paper, Group, Text} from '@mantine/core';
 import type {FC} from 'react';
 
 const Message: FC<{
@@ -8,7 +8,10 @@ const Message: FC<{
 }> = ({own, text, time}) => {
   return (
     <Group position={own ? 'right' : 'left'}>
-      <Text>{text}</Text>
+      <Paper shadow="xs" p="xs" pb="md" m="xs" sx={{position: 'relative'}} radius="md" withBorder>
+        <Text>{text}</Text>
+        <Text sx={{position: 'absolute', bottom: 2, right: 4, fontSize: '0.7em'}}>{time}</Text>
+      </Paper>
     </Group>
   );
 };
