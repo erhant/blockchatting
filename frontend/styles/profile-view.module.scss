@@ -4,3 +4,13 @@ $image-size: 65px;
   width: $image-size;
   height: $image-size;
 }
+
+.clickable {
+  cursor: pointer;
+  transition: border-left-width 0.1s ease-in-out;
+  border-left: 0px solid whitesmoke;
+
+  &:hover {
+    border-left-width: 5px;
+  }
+}

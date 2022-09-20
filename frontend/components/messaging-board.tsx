@@ -1,11 +1,12 @@
 import {ArrowPathIcon, PaperAirplaneIcon} from '@heroicons/react/24/solid';
-import {Box, Container, Text, Button, Divider, TextInput, ActionIcon, Loader, Group, Stack} from '@mantine/core';
+import {Box, Container, Text, Divider, TextInput, ActionIcon, Loader, Group, Stack, ScrollArea} from '@mantine/core';
 import {BigNumber} from 'ethers';
-import {FC, useState} from 'react';
+import {FC, useEffect, useState} from 'react';
 import {CryptoAES256} from '../lib/crypto';
 import {Chat} from '../types/typechain';
 import {notifyError, notifyTransaction} from '../utils/notify';
 import Message from './message';
+import styles from '../styles/messaging-board.module.scss';
 
 type MessageType = {
   own: boolean;
@@ -28,6 +29,7 @@ const MessagingBoard: FC<{myAddress: string; peerAddress: string; contract: Chat
    * by their times too (not blocktimestamp, but rather the time)
    */
   async function getMessages() {
+    console.log(myAddress, peerAddress);
     const [msgFromMe, msgToMe] = await Promise.all([
       contract.queryFilter(contract.filters.MessageSent(myAddress, peerAddress)),
       contract.queryFilter(contract.filters.MessageSent(peerAddress, myAddress)),
@@ -35,15 +37,20 @@ const MessagingBoard: FC<{myAddress: string; peerAddress: string; contract: Chat
 
     // sort messages by block number
     const msgsRaw = myAddress == peerAddress ? msgFromMe : msgFromMe.concat(msgToMe);
+    console.log(msgsRaw.map(m => m.args));
     const msgs: MessageType[] = msgsRaw
       .sort((a, b) => (a.args._time.lt(b.args._time) ? -1 : 1))
       .map(msgEvent => ({
-        own: msgEvent.args._from == myAddress,
+        own: msgEvent.args._from.toLowerCase() == myAddress,
         message: chatScheme.decrypt(Buffer.from(msgEvent.args._message, 'hex')).toString(),
         time: msgEvent.args._time.toNumber(),
       }));
     setMessages(msgs);
   }
+
+  useEffect(() => {
+    getMessages();
+  }, []);
 
   /**
    * Sends a non-empty message encrypted with the chat secret.
@@ -65,22 +72,24 @@ const MessagingBoard: FC<{myAddress: string; peerAddress: string; contract: Chat
   }
 
   return (
-    <Box>
-      <Stack>
+    <Box className={styles['messaging-board']}>
+      <ScrollArea className={styles['messages']}>
         {messages.length > 0 ? (
           messages.map((m, i) => (
-            <Message key={i} own={m.own} time={new Date(m.time).toLocaleTimeString('tr')} text={m.message} />
+            <Box key={i} sx={{width: '100%'}}>
+              <Message own={m.own} time={new Date(m.time).toLocaleTimeString('tr')} text={m.message} />
+            </Box>
           ))
         ) : (
-          <Text my="md" color="dimmed">
-            No messages yet.
+          <Text color="dimmed" sx={{textAlign: 'center'}}>
+            start chatting below
           </Text>
         )}
-      </Stack>
-      <Divider />
+      </ScrollArea>
+      <Divider my="md" />
 
       {/* new message input */}
-      <Group my="sm">
+      <Group>
         {/* refresh icon */}
         <ActionIcon onClick={getMessages}>
           <ArrowPathIcon />

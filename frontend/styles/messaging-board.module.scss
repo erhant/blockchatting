@@ -1,0 +1,12 @@
+.messaging-board {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  .messages {
+    max-height: 600px;
+    flex-grow: 1;
+    overflow: auto;
+    scroll-behavior: auto;
+  }
+}

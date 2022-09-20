@@ -40,7 +40,7 @@ export const WalletContextWrapper: FC<{children: ReactNode}> = ({children}) => {
           provider,
           library,
           network,
-          address: accounts[0], // always get the first account (topmost),
+          address: accounts[0].toLowerCase(), // always get the first account (topmost),
           chainId: network.chainId,
         });
       } else {

@@ -18,12 +18,12 @@ enum OnboardStatus {
 }
 
 // Onboarding is responsible of taking the user in, initializing them and showing the progress
-const Onboarding: FC<{wallet: WalletType}> = ({wallet}) => {
+const Onboarding: FC<{address: string}> = ({address}) => {
   const {contract} = useChatContext();
   const [isUserInitialized, setIsUserInitialized] = useState<boolean>();
   const [userScheme, setUserScheme] = useState<CryptoECIES>();
   const [activeStep, setActiveStep] = useState<OnboardStatus>(OnboardStatus.CHECKING);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [previousPeers, setPreviousPeers] = useState<string[]>();
   const [entryFee, setEntryFee] = useState<BigNumber>();
 
@@ -32,18 +32,19 @@ const Onboarding: FC<{wallet: WalletType}> = ({wallet}) => {
     setActiveStep(OnboardStatus.CHECKING);
     setIsUserInitialized(undefined);
     setPreviousPeers(undefined);
-  }, [wallet]);
+  }, [address]);
+
   useEffect(() => {
     async function checkUserInitialization(contract: Chat) {
       await new Promise(resolve => {
         setTimeout(resolve, 1000);
       });
-      const isUserInitialized = await contract.isUserInitialized(wallet.address);
+      const isUserInitialized = await contract.isUserInitialized(address);
       setIsUserInitialized(isUserInitialized);
       setActiveStep(OnboardStatus.INITIALIZING);
 
       if (isUserInitialized) {
-        const userInitialization = await contract.userInitializations(wallet.address);
+        const userInitialization = await contract.userInitializations(address);
 
         // retrieve secret
         const encryptedUserSecret = Buffer.from(userInitialization.encryptedUserSecret.slice(2), 'hex');
@@ -51,7 +52,7 @@ const Onboarding: FC<{wallet: WalletType}> = ({wallet}) => {
         // decrypt with your metamask
         setIsLoading(true);
         try {
-          const userSecret = await new CryptoMetaMask(wallet.address, window.ethereum).decrypt(encryptedUserSecret);
+          const userSecret = await new CryptoMetaMask(address, window.ethereum).decrypt(encryptedUserSecret);
           setUserScheme(new CryptoECIES(userSecret));
           setActiveStep(OnboardStatus.FETCHING);
         } catch (e) {
@@ -69,7 +70,7 @@ const Onboarding: FC<{wallet: WalletType}> = ({wallet}) => {
       setEntryFee(e);
       checkUserInitialization(contract);
     });
-  }, [contract]);
+  }, [contract, address]);
 
   async function initializeUser(contract: Chat) {
     // encrypt and store your secret
@@ -78,7 +79,7 @@ const Onboarding: FC<{wallet: WalletType}> = ({wallet}) => {
 
     setIsLoading(true);
     try {
-      const encryptedUserSecret = await new CryptoMetaMask(wallet.address, window.ethereum).encrypt(userSecret);
+      const encryptedUserSecret = await new CryptoMetaMask(address, window.ethereum).encrypt(userSecret);
       try {
         const tx = await contract.initializeUser(
           encryptedUserSecret.toJSON().data,
@@ -92,31 +93,34 @@ const Onboarding: FC<{wallet: WalletType}> = ({wallet}) => {
         await tx.wait();
         notifyTransactionUpdate(txID, 'User initialized!');
       } catch (e) {
-        return notifyError(e, 'Could not initialize user.');
+        notifyError(e, 'Could not initialize user.');
+        return;
       }
     } catch (e) {
-      return notifyError(e, 'Could not encrypt.');
+      notifyError(e, 'Could not encrypt.');
+      return;
     }
 
-    setIsLoading(false);
     setUserScheme(new CryptoECIES(userSecret));
     setActiveStep(OnboardStatus.FETCHING);
+    setIsLoading(false);
   }
 
   useEffect(() => {
     async function loadChatHistory(contract: Chat) {
-      await new Promise(resolve => {
-        setTimeout(resolve, 1000);
-      });
+      setIsLoading(true);
       const [chatFromMe, chatFromThem] = await Promise.all([
-        contract.queryFilter(contract.filters.ChatInitialized(wallet.address, null)),
-        contract.queryFilter(contract.filters.ChatInitialized(null, wallet.address)),
+        contract.queryFilter(contract.filters.ChatInitialized(address, null)),
+        contract.queryFilter(contract.filters.ChatInitialized(null, address)),
       ]);
-      setPreviousPeers(chatFromMe.map(h => h.args.peer).concat(chatFromThem.map(h => h.args.initializer)));
+      setIsLoading(false);
+      setPreviousPeers(
+        chatFromMe.map(h => h.args.peer.toLowerCase()).concat(chatFromThem.map(h => h.args.initializer.toLowerCase()))
+      );
     }
 
     if (contract && activeStep == OnboardStatus.FETCHING) loadChatHistory(contract);
-  }, [activeStep, contract]);
+  }, [activeStep, contract, address]);
 
   return !(previousPeers && userScheme) ? (
     <Stepper active={activeStep} orientation="vertical">
@@ -125,9 +129,9 @@ const Onboarding: FC<{wallet: WalletType}> = ({wallet}) => {
         label="Checking Initialization"
         description={
           isUserInitialized == undefined
-            ? 'We are checking if you have used this app before...'
+            ? 'Fetching your data...'
             : isUserInitialized
-            ? 'Welcome back, ' + addressToUsername(wallet.address) + '.'
+            ? 'Welcome back, ' + addressToUsername(address) + '.'
             : 'You are a first time user!'
         }
         loading={activeStep == OnboardStatus.CHECKING && isLoading}
@@ -148,7 +152,10 @@ const Onboarding: FC<{wallet: WalletType}> = ({wallet}) => {
         loading={activeStep == OnboardStatus.INITIALIZING && isLoading}
       >
         {isUserInitialized == false && (
-          <Button onClick={() => initializeUser(contract!)}>{`Initialize (${formatEther(entryFee!)} ETH)`}</Button>
+          <Button
+            onClick={() => initializeUser(contract!)}
+            sx={{margin: 'auto', width: '100%'}}
+          >{`Initialize (${formatEther(entryFee!)} ETH)`}</Button>
         )}
       </Stepper.Step>
 
@@ -160,7 +167,7 @@ const Onboarding: FC<{wallet: WalletType}> = ({wallet}) => {
       ></Stepper.Step>
     </Stepper>
   ) : (
-    <Dashboard myAddress={wallet.address} contract={contract!} userScheme={userScheme} previousPeers={previousPeers} />
+    <Dashboard myAddress={address} contract={contract!} userScheme={userScheme} previousPeers={previousPeers} />
   );
 };
 

@@ -1,0 +1,29 @@
+.main {
+  width: 80vw;
+  height: 90vh;
+  border-radius: 15px;
+  border: 1px solid gray;
+  padding: 10px;
+
+  .grid {
+    height: 100%;
+
+    .left-column {
+      display: flex;
+      flex-direction: column;
+      padding: var(--mantine-spacing-xs);
+      height: 100%;
+
+      .peers-menu {
+        flex-grow: 1;
+      }
+    }
+
+    .right-column {
+      display: flex;
+      flex-direction: column;
+      padding: var(--mantine-spacing-xs);
+      height: 100%;
+    }
+  }
+}

@@ -1,14 +1,12 @@
 import {Box, Container, Text, Group, Grid, Stack, TextInput, Button, Title, Divider} from '@mantine/core';
-import ThemeToggleButton from './theme-toggle-button';
-import Link from 'next/link';
 import {FC, useState} from 'react';
 import {Chat} from '../types/typechain';
 import {CryptoAES256, CryptoECIES, generateSecret} from '../lib/crypto';
-import {truncateAddress} from '../utils/utility';
 import {ethers} from 'ethers';
 import {notify, notifyError, notifyTransaction, notifyTransactionUpdate} from '../utils/notify';
 import MessagingBoard from './messaging-board';
 import ProfileView from './profile-view';
+import styles from '../styles/dashboard.module.scss';
 
 // Dashboard is the main page, there is no header here. Just like Whatsapp
 // User initialization is passed as a prop here
@@ -41,9 +39,6 @@ const Dashboard: FC<{myAddress: string; contract: Chat; userScheme: CryptoECIES;
     }
   }
 
-  /**
-   * Initializes a chat session with a peer. This is done by
-   */
   async function initializeChat(peerAddress: string) {
     // generate secret from chat scheme
     const chatSecret = generateSecret();
@@ -69,77 +64,81 @@ const Dashboard: FC<{myAddress: string; contract: Chat; userScheme: CryptoECIES;
   }
 
   return (
-    <Box sx={{width: '50vw', height: '90vh'}}>
-      <Grid>
-        <Grid.Col xs={5}>
-          {/* show my profile */}
-          <Title order={3}>You</Title>
-          <ProfileView
-            address={myAddress}
-            isMe={true}
-            onClick={() => {
-              setPeer(myAddress);
-            }}
-          />
-          <Divider />
+    <Box className={styles['main']}>
+      <Grid className={styles['grid']}>
+        <Grid.Col xs={3}>
+          <Box className={styles['left-column']}>
+            {/* show my profile */}
+            <Title order={3}>You</Title>
+            <ProfileView
+              address={myAddress}
+              isMe={true}
+              onClick={() => {
+                setPeer(myAddress);
+              }}
+            />
+            <Divider my="md" />
 
-          {/* show previous chat peers */}
-          <Title order={3}>Peers</Title>
-          {previousPeers.length > 0 ? (
-            previousPeers.map(
-              (peer, i) =>
-                peer != myAddress && (
-                  <ProfileView
-                    key={i}
-                    address={peer}
-                    isMe={false}
-                    onClick={() => {
-                      setPeer(peer);
-                    }}
-                  />
+            {/* show previous chat peers */}
+            <Title order={3}>Peers</Title>
+            <Box className={styles['peers-menu']}>
+              {previousPeers.length > 0 ? (
+                previousPeers.map(
+                  (peer, i) =>
+                    peer != myAddress && (
+                      <ProfileView
+                        key={i}
+                        address={peer}
+                        isMe={false}
+                        onClick={() => {
+                          setPeer(peer);
+                        }}
+                      />
+                    )
                 )
-            )
-          ) : (
-            <Text>You have not chatted with anyone yet!</Text>
-          )}
-
-          {/* enter peer address here */}
-          <TextInput
-            label="New Peer"
-            placeholder="address"
-            value={peerAddressInput}
-            onChange={event => setPeerAddressInput(event.currentTarget.value)}
-            rightSection={
-              <Button size="xs" onClick={() => setPeer(peerAddressInput)}>
-                Go
-              </Button>
-            }
-          />
-        </Grid.Col>
-        <Grid.Col xs={7}>
-          <Title order={3}>Chat</Title>
-          {peerAddress ? (
-            // peer address is here, but we do not know if it is initialized or not
-            <>
-              <ProfileView address={peerAddress} isMe={peerAddress == myAddress} />
-              <Divider />
-              {chatScheme ? (
-                // we have the chat secret
-                <MessagingBoard
-                  chatScheme={chatScheme}
-                  contract={contract}
-                  myAddress={myAddress}
-                  peerAddress={peerAddress}
-                />
               ) : (
-                //we have peer but it is not initialized
-                <Button onClick={() => initializeChat(peerAddress)}>Initialize Chat</Button>
+                <Text>You have not chatted with anyone yet!</Text>
               )}
-            </>
-          ) : (
-            // just a welcome message here
-            <Text>Start chatting by choosing a person from left, or entering a new address.</Text>
-          )}
+            </Box>
+
+            {/* enter peer address here */}
+            <Group align="flex-end" grow>
+              <TextInput
+                label="New Peer"
+                placeholder="address"
+                value={peerAddressInput}
+                onChange={event => setPeerAddressInput(event.currentTarget.value)}
+              />
+              <Button onClick={() => setPeer(peerAddressInput.toLowerCase())}>Go</Button>
+            </Group>
+          </Box>
+        </Grid.Col>
+        <Grid.Col xs={9}>
+          <Box className={styles['right-column']}>
+            <Title order={3}>Chat</Title>
+            {peerAddress ? (
+              // peer address is here, but we do not know if it is initialized or not
+              <>
+                <ProfileView address={peerAddress} isMe={peerAddress == myAddress} />
+                <Divider my="md" />
+                {chatScheme ? (
+                  // we have the chat secret
+                  <MessagingBoard
+                    chatScheme={chatScheme}
+                    contract={contract}
+                    myAddress={myAddress}
+                    peerAddress={peerAddress}
+                  />
+                ) : (
+                  // we have peer but it is not initialized
+                  <Button onClick={() => initializeChat(peerAddress)}>Initialize Chat</Button>
+                )}
+              </>
+            ) : (
+              // just a welcome message here
+              <Text>Start chatting by choosing a person from left, or entering a new address.</Text>
+            )}
+          </Box>
         </Grid.Col>
       </Grid>
     </Box>
