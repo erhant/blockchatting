@@ -109,7 +109,7 @@ export const notifyTransaction = (tx: ContractTransaction): string => {
 /**
  * Update an existing transaction notification. Mostly done to show the result of a pending transaction.
  * @param {string} id notification ID from the notifyTransaction
- * @param message message to be updated
+ * @param message message to display on completion
  * @param variant
  * @see notifyTransaction
  */
@@ -123,4 +123,15 @@ export const notifyTransactionUpdate = (id: string, message?: ReactNode, variant
     autoClose: AUTO_CLOSE_DEFAULT,
     disallowClose: false,
   });
+};
+
+/**
+ *
+ * @param {ContractTransaction} tx transaction object
+ * @param message message to display on completion
+ */
+export const notifyTransactionWithWait = async (tx: ContractTransaction, message: ReactNode): Promise<void> => {
+  const txID = notifyTransaction(tx);
+  await tx.wait();
+  notifyTransactionUpdate(txID, message, 'success');
 };

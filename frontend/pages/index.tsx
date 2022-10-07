@@ -6,7 +6,14 @@ import Onboarding from '../components/onboarding';
 
 const Home: NextPage = () => {
   const {wallet} = useWalletContext();
-  return <Layout centered>{wallet ? <Onboarding address={wallet.address} /> : <WalletConnection />}</Layout>;
+
+  return wallet ? (
+    <Onboarding address={wallet.address} />
+  ) : (
+    <Layout centered>
+      <WalletConnection />
+    </Layout>
+  );
 };
 
 export default Home;

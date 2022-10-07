@@ -1,18 +1,13 @@
 import {ArrowPathIcon, PaperAirplaneIcon} from '@heroicons/react/24/solid';
 import {Box, Container, Text, Divider, TextInput, ActionIcon, Loader, Group, Stack, ScrollArea} from '@mantine/core';
 import {BigNumber} from 'ethers';
-import {FC, useEffect, useState} from 'react';
+import {FC, useCallback, useEffect, useState} from 'react';
 import {CryptoAES256} from '../lib/crypto';
 import {Chat} from '../types/typechain';
-import {notifyError, notifyTransaction} from '../utils/notify';
+import {notifyError} from '../utils/notify';
 import Message from './message';
 import styles from '../styles/messaging-board.module.scss';
-
-type MessageType = {
-  own: boolean;
-  message: string;
-  time: number;
-};
+import {MessageSentListener, MessageType} from '../types/message';
 
 const MessagingBoard: FC<{myAddress: string; peerAddress: string; contract: Chat; chatScheme: CryptoAES256}> = ({
   myAddress,
@@ -28,29 +23,57 @@ const MessagingBoard: FC<{myAddress: string; peerAddress: string; contract: Chat
    * Retrieves messages between the peer and user. These are sorted
    * by their times too (not blocktimestamp, but rather the time)
    */
-  async function getMessages() {
-    console.log(myAddress, peerAddress);
+  const getMessages: () => void = useCallback(async () => {
     const [msgFromMe, msgToMe] = await Promise.all([
       contract.queryFilter(contract.filters.MessageSent(myAddress, peerAddress)),
       contract.queryFilter(contract.filters.MessageSent(peerAddress, myAddress)),
     ]);
 
     // sort messages by block number
-    const msgsRaw = myAddress == peerAddress ? msgFromMe : msgFromMe.concat(msgToMe);
-    console.log(msgsRaw.map(m => m.args));
+    const msgsRaw = (myAddress == peerAddress ? msgFromMe : msgFromMe.concat(msgToMe)).map(msgRaw => msgRaw.args);
     const msgs: MessageType[] = msgsRaw
-      .sort((a, b) => (a.args._time.lt(b.args._time) ? -1 : 1))
-      .map(msgEvent => ({
-        own: msgEvent.args._from.toLowerCase() == myAddress,
-        message: chatScheme.decrypt(Buffer.from(msgEvent.args._message, 'hex')).toString(),
-        time: msgEvent.args._time.toNumber(),
+      .sort((a, b) => (a._time.lt(b._time) ? -1 : 1))
+      .map(msgRaw => ({
+        own: msgRaw._from.toLowerCase() == myAddress,
+        message: chatScheme.decrypt(Buffer.from(msgRaw._message, 'hex')).toString(),
+        time: msgRaw._time.toNumber(),
       }));
     setMessages(msgs);
-  }
+  }, [chatScheme, contract, myAddress, peerAddress]);
+
+  /**
+   * Update messages as a result of event
+   */
+  const updateMessages: MessageSentListener = useCallback(
+    (_from: string, _to: string, _message: string, _time: BigNumber) => {
+      console.log('Message received from:', _from);
+      setMessages(msgs => [
+        ...msgs,
+        {
+          own: _from == myAddress,
+          message: chatScheme.decrypt(Buffer.from(_message, 'hex')).toString(),
+          time: _time.toNumber(),
+        },
+      ]);
+    },
+    [chatScheme, myAddress]
+  );
 
   useEffect(() => {
+    // get existing messages
     getMessages();
-  }, []);
+
+    // subscribe to new messages
+    if (peerAddress != myAddress) {
+      contract.on(contract.filters.MessageSent(myAddress, peerAddress, null, null), updateMessages);
+    }
+    contract.on(contract.filters.MessageSent(peerAddress, myAddress, null, null), updateMessages);
+
+    // unsubscribe
+    return () => {
+      contract.removeAllListeners();
+    };
+  }, [contract, getMessages, myAddress, peerAddress, updateMessages]);
 
   /**
    * Sends a non-empty message encrypted with the chat secret.
@@ -77,7 +100,7 @@ const MessagingBoard: FC<{myAddress: string; peerAddress: string; contract: Chat
         {messages.length > 0 ? (
           messages.map((m, i) => (
             <Box key={i} sx={{width: '100%'}}>
-              <Message own={m.own} time={new Date(m.time).toLocaleTimeString('tr')} text={m.message} />
+              <Message own={m.own} time={m.time} message={m.message} />
             </Box>
           ))
         ) : (
@@ -103,6 +126,7 @@ const MessagingBoard: FC<{myAddress: string; peerAddress: string; contract: Chat
           disabled={isMessageBeingSent}
           onChange={event => setMessageInput(event.currentTarget.value)}
         />
+
         {/* send button */}
         {isMessageBeingSent ? (
           <Loader />

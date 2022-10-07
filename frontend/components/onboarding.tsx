@@ -5,11 +5,12 @@ import {Chat} from '../types/typechain';
 import {CryptoECIES, CryptoMetaMask, generateSecret} from '../lib/crypto';
 import {WalletType} from '../types/wallet';
 import Dashboard from './dashboard';
-import {notifyError, notifyTransaction, notifyTransactionUpdate} from '../utils/notify';
+import {notifyError, notifyTransaction, notifyTransactionUpdate, notifyTransactionWithWait} from '../utils/notify';
 import ReactNiceAvatar from 'react-nice-avatar';
 import {addressToAvatarConfig, addressToUsername} from '../lib/profile';
 import {BigNumber} from 'ethers';
 import {formatEther} from 'ethers/lib/utils';
+import Layout from './layout';
 
 enum OnboardStatus {
   CHECKING = 0,
@@ -89,16 +90,12 @@ const Onboarding: FC<{address: string}> = ({address}) => {
             value: await contract.entryFee(), // entry fee retrieved from contract
           }
         );
-        const txID = notifyTransaction(tx);
-        await tx.wait();
-        notifyTransactionUpdate(txID, 'User initialized!');
+        await notifyTransactionWithWait(tx, 'User initialized!');
       } catch (e) {
-        notifyError(e, 'Could not initialize user.');
-        return;
+        return notifyError(e, 'Could not initialize user.');
       }
     } catch (e) {
-      notifyError(e, 'Could not encrypt.');
-      return;
+      return notifyError(e, 'Could not encrypt.');
     }
 
     setUserScheme(new CryptoECIES(userSecret));
@@ -123,49 +120,51 @@ const Onboarding: FC<{address: string}> = ({address}) => {
   }, [activeStep, contract, address]);
 
   return !(previousPeers && userScheme) ? (
-    <Stepper active={activeStep} orientation="vertical">
-      {/* check if user is initialized */}
-      <Stepper.Step
-        label="Checking Initialization"
-        description={
-          isUserInitialized == undefined
-            ? 'Fetching your data...'
-            : isUserInitialized
-            ? 'Welcome back, ' + addressToUsername(address) + '.'
-            : 'You are a first time user!'
-        }
-        loading={activeStep == OnboardStatus.CHECKING && isLoading}
-      ></Stepper.Step>
+    <Layout centered>
+      <Stepper active={activeStep} orientation="vertical">
+        {/* check if user is initialized */}
+        <Stepper.Step
+          label="Checking Initialization"
+          description={
+            isUserInitialized == undefined
+              ? 'Fetching your data...'
+              : isUserInitialized
+              ? 'Welcome back, ' + addressToUsername(address) + '.'
+              : 'You are a first time user!'
+          }
+          loading={activeStep == OnboardStatus.CHECKING && isLoading}
+        ></Stepper.Step>
 
-      {/* initailize user */}
-      <Stepper.Step
-        label="Initializing"
-        description={
-          activeStep == OnboardStatus.FETCHING
-            ? 'Initialized.'
-            : isUserInitialized == undefined
-            ? ''
-            : isUserInitialized
-            ? 'Waiting for key decryption...'
-            : 'Click initialize to create a key-pair!'
-        }
-        loading={activeStep == OnboardStatus.INITIALIZING && isLoading}
-      >
-        {isUserInitialized == false && (
-          <Button
-            onClick={() => initializeUser(contract!)}
-            sx={{margin: 'auto', width: '100%'}}
-          >{`Initialize (${formatEther(entryFee!)} ETH)`}</Button>
-        )}
-      </Stepper.Step>
+        {/* initailize user */}
+        <Stepper.Step
+          label="Initializing"
+          description={
+            activeStep == OnboardStatus.FETCHING
+              ? 'Initialized.'
+              : isUserInitialized == undefined
+              ? ''
+              : isUserInitialized
+              ? 'Waiting for key decryption...'
+              : 'Click initialize to create a key-pair!'
+          }
+          loading={activeStep == OnboardStatus.INITIALIZING && isLoading}
+        >
+          {isUserInitialized == false && (
+            <Button
+              onClick={() => initializeUser(contract!)}
+              sx={{margin: 'auto', width: '100%'}}
+            >{`Initialize (${formatEther(entryFee!)} ETH)`}</Button>
+          )}
+        </Stepper.Step>
 
-      {/* load chat history for the user */}
-      <Stepper.Step
-        label="Loading Chat History"
-        description="Create an account"
-        loading={activeStep == OnboardStatus.FETCHING && isLoading}
-      ></Stepper.Step>
-    </Stepper>
+        {/* load chat history for the user */}
+        <Stepper.Step
+          label="Loading Chat History"
+          description="Create an account"
+          loading={activeStep == OnboardStatus.FETCHING && isLoading}
+        ></Stepper.Step>
+      </Stepper>
+    </Layout>
   ) : (
     <Dashboard myAddress={address} contract={contract!} userScheme={userScheme} previousPeers={previousPeers} />
   );

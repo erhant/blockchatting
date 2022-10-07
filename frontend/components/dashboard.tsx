@@ -3,7 +3,13 @@ import {FC, useState} from 'react';
 import {Chat} from '../types/typechain';
 import {CryptoAES256, CryptoECIES, generateSecret} from '../lib/crypto';
 import {ethers} from 'ethers';
-import {notify, notifyError, notifyTransaction, notifyTransactionUpdate} from '../utils/notify';
+import {
+  notify,
+  notifyError,
+  notifyTransaction,
+  notifyTransactionUpdate,
+  notifyTransactionWithWait,
+} from '../utils/notify';
 import MessagingBoard from './messaging-board';
 import ProfileView from './profile-view';
 import styles from '../styles/dashboard.module.scss';
@@ -54,9 +60,7 @@ const Dashboard: FC<{myAddress: string; contract: Chat; userScheme: CryptoECIES;
     // initialize chat and update state
     try {
       const tx = await contract.initializeChat(chatSecretEncryptedForMe, chatSecretEncryptedForPeer, peerAddress);
-      const txID = notifyTransaction(tx);
-      await tx.wait();
-      notifyTransactionUpdate(txID, 'Chat initialized!', 'success');
+      await notifyTransactionWithWait(tx, 'Chat initialized!');
       setChatScheme(new CryptoAES256(chatSecret));
     } catch (e) {
       notifyError(e, 'Could not initialize chat.');
