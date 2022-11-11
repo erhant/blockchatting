@@ -1,7 +1,7 @@
 {
-  "name": "blockchattin-frontend",
+  "name": "blockchatting-frontend",
   "version": "0.1.0",
-  "description": "NextJS frontend implementation for Blockchattin.",
+  "description": "NextJS frontend implementation for Blockchatting.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -16,12 +16,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/erhant/blockchattin.git"
+    "url": "git+https://github.com/erhant/blockchatting.git"
   },
   "author": "erhant",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/erhant/blockchattin/issues"
+    "url": "https://github.com/erhant/blockchatting/issues"
   },
   "dependencies": {
     "@heroicons/react": "^2.0.11",

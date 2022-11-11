@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="./img/blockchattin.svg" alt="logo" width="200">
+  <img src="./img/blockchatting.svg" alt="logo" width="200">
 </p>
 
-# Blockchattin: Peer-to-Peer On-Chain Chatting
+# Blockchatting
 
 **A decentralized chatting application where each message is a transaction**. Work in progress.
 
@@ -10,9 +10,19 @@ Although a [deprecated functionality of MetaMask](https://medium.com/metamask/me
 
 There are two drawbacks to these functions: `eth_decrypt` and `eth_getEncryptionPublicKey` asks for user input everytime it is called, and encryption is done for UTF-8 only. So, an EOA keypair should not be used for chatting per se. Instead, the user will generate a public-private key pair and store the encrypted secret on-chain: on first use, the user will encrypt this secret with their own EOA public key (via MetaMask RPC). On later usage, the user can retrieve the stored encrypted key and decrypt it with their EOA key.
 
-With this approach, no keys are exposed. As for the messaging itself, a secret key is created. Say Alice is talking to Bob, Alice will create the secret and store two copies of this secret: one encrypted with Alice's public key and the other encrypted with Bob's public key. This secret will be used to encrypt and decrypt the actual messages.
+With this approach, no keys are exposed. As for the messaging itself, a secret key is created. Say Alice is talking to Bob, Alice will create the secret and store two copies of this secret: one encrypted with Alice's public key and the other encrypted with Bob's public key. This secret will be used to encrypt and decrypt the actual messages. For symmetric encryption we use AES256, and for asymmetric encryption we use ECIES (secp256k1).
 
-For symmetric encryption we use AES256, and for asymmetric encryption we use ECIES (secp256k1).
+Deterministically random avatars and names are generated from addresses. These are not customisable, and are for UI purposes alone. Furthermore, it is easier for a user to recognize a peer w.r.t their avatar & name rather than their address. Here is what a chat session looks like:
+
+![example UI](./img/example.PNG)
+
+## Usage
+
+There are scripts ready within `package.json`:
+
+- First, `yarn node:start` in a terminal to start your node.
+- Then, `yarn node:prep` to deploy the contract.
+- Finally, run `yarn dev` to start a local development server.
 
 ## User Initialization
 
@@ -54,7 +64,7 @@ sequenceDiagram
   Alice ->> Contract: chatkeys[Bob][Alice] = encrypt(sk_alice_bob, bob-pk_chat)
 ```
 
-## Peer-to-Peer Encrypted Messaging
+## End-to-End Encryption
 
 When Alice and Bob talk to eachother, they will encrypt the messages with this secret key.
 
@@ -87,11 +97,3 @@ Why not use public key encryption for messaging? There are two good reasons:
 - The frontend codes are formatted & linted with respect to [Google TypeScript Styleguide](https://google.github.io/styleguide/tsguide.html) using [GTS](https://github.com/google/gts).
 - SCSS codes are formatted by [SCSS Formatter](https://marketplace.visualstudio.com/items?itemName=sibiraj-s.vscode-scss-formatter).
 - The contract codes are formatted with [Solidity + Hardhat](https://hardhat.org/hardhat-vscode/docs/formatting). Solidity linter is [solhint](https://protofire.github.io/solhint).
-
-## UI
-
-Deterministically random avatars and names are generated from addresses. These are not customisable, and are for UI purposes alone. Furthermore, it is easier for a user to recognize a peer w.r.t their avatar & name rather than their address.
-
-## Running
-
-Run `npx hardhat node` at a separate terminal, and then run `npx hardhat run ./scripts/Chat.deploy.ts --network localhost` to deploy the contract. Launch the frontend with `yarn run dev`.

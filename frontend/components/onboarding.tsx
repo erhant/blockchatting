@@ -92,15 +92,19 @@ const Onboarding: FC<{address: string}> = ({address}) => {
         );
         await notifyTransactionWithWait(tx, 'User initialized!');
       } catch (e) {
-        return notifyError(e, 'Could not initialize user.');
+        notifyError(e, 'Could not initialize user.');
+        return;
       }
     } catch (e) {
-      return notifyError(e, 'Could not encrypt.');
+      notifyError(e, 'Could not encrypt.');
+      return;
     }
 
     setUserScheme(new CryptoECIES(userSecret));
     setActiveStep(OnboardStatus.FETCHING);
     setIsLoading(false);
+
+    return;
   }
 
   useEffect(() => {

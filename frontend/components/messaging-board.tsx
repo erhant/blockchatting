@@ -41,9 +41,7 @@ const MessagingBoard: FC<{myAddress: string; peerAddress: string; contract: Chat
     setMessages(msgs);
   }, [chatScheme, contract, myAddress, peerAddress]);
 
-  /**
-   * Update messages as a result of event
-   */
+  /// Update messages as a result of event
   const updateMessages: MessageSentListener = useCallback(
     (_from: string, _to: string, _message: string, _time: BigNumber) => {
       console.log('Message received from:', _from);
@@ -88,6 +86,7 @@ const MessagingBoard: FC<{myAddress: string; peerAddress: string; contract: Chat
         BigNumber.from(Date.now())
       );
       await tx.wait();
+      setMessageInput('');
     } catch (e) {
       notifyError(e, 'Could not send message.');
     }

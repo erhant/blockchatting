@@ -24,7 +24,7 @@ export default function App(props: AppProps & {colorScheme: ColorScheme}) {
   return (
     <>
       <Head>
-        <title>Blockchattin</title>
+        <title>Blockchatting</title>
         <meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width" />
         <meta name="description" content="A decentralized peer-to-peer chatting application." />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
