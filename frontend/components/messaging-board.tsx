@@ -48,7 +48,7 @@ const MessagingBoard: FC<{myAddress: string; peerAddress: string; contract: Chat
       setMessages(msgs => [
         ...msgs,
         {
-          own: _from == myAddress,
+          own: _from.toLowerCase() == myAddress.toLowerCase(),
           message: chatScheme.decrypt(Buffer.from(_message, 'hex')).toString(),
           time: _time.toNumber(),
         },
@@ -62,7 +62,7 @@ const MessagingBoard: FC<{myAddress: string; peerAddress: string; contract: Chat
     getMessages();
 
     // subscribe to new messages
-    if (peerAddress != myAddress) {
+    if (peerAddress.toLowerCase() != myAddress.toLowerCase()) {
       contract.on(contract.filters.MessageSent(myAddress, peerAddress, null, null), updateMessages);
     }
     contract.on(contract.filters.MessageSent(peerAddress, myAddress, null, null), updateMessages);

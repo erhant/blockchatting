@@ -2,7 +2,6 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "hardhat/console.sol";
 
 // Error codes
 uint8 constant ErrUserAlreadyInitialized = 1;
@@ -14,7 +13,8 @@ error BlockchattingError(uint8 code);
 
 /// @title Blockchatting: P2P Chatting via Smart Contracts
 /// @author Erhan Tezcan (erhant)
-/// @dev A chat contract that allows users to send messages via their addresses
+/// @dev A chat contract that allows EOAs to send messages via their addresses
+/// with end-to-end encryption and a symmetric key per peer
 contract Chat is Ownable {
   /// @dev See `initializeUser` function
   struct UserInitialization {
@@ -77,7 +77,6 @@ contract Chat is Ownable {
     bool publicKeyPrefix,
     bytes32 publicKeyX
   ) external payable {
-    console.log("Length:", encryptedUserSecret.length);
     if (isUserInitialized(msg.sender)) {
       revert BlockchattingError(ErrUserAlreadyInitialized);
     }
@@ -119,7 +118,7 @@ contract Chat is Ownable {
 
   /// @notice Transfers the balance of the contract to the owner
   function withdraw() external onlyOwner {
-    payable(msg.sender).transfer(address(this).balance);
+    payable(owner()).transfer(address(this).balance);
   }
 
   receive() external payable {}

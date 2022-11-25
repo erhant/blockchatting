@@ -12,7 +12,8 @@
       height: 100%;
 
       .peers-menu {
-        flex-grow: 1;
+        max-height: 63vh;
+        min-height: 63vh;
       }
     }
 

@@ -1,4 +1,4 @@
-import {Box, Text, Group, Grid, TextInput, Button, Title, Divider} from '@mantine/core';
+import {Box, Text, Group, Grid, TextInput, Button, Title, Divider, ScrollArea} from '@mantine/core';
 import {FC, useState} from 'react';
 import {Chat} from '../types/typechain';
 import {CryptoAES256, CryptoECIES, generateSecret} from '../lib/crypto';
@@ -79,7 +79,7 @@ const Dashboard: FC<{myAddress: string; contract: Chat; userScheme: CryptoECIES;
 
             {/* show previous chat peers */}
             <Title order={3}>Peers</Title>
-            <Box className={styles['peers-menu']}>
+            <ScrollArea className={styles['peers-menu']}>
               {previousPeers.length > 0 ? (
                 previousPeers.map(
                   (peer, i) =>
@@ -97,7 +97,7 @@ const Dashboard: FC<{myAddress: string; contract: Chat; userScheme: CryptoECIES;
               ) : (
                 <Text>You have not chatted with anyone yet!</Text>
               )}
-            </Box>
+            </ScrollArea>
 
             {/* enter peer address here */}
             <Group align="flex-end" grow>

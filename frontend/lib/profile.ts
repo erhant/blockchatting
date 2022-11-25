@@ -16,7 +16,7 @@ import Alea from 'alea'; // alea is a tiny random seeded prng
 import {uniqueNamesGenerator, adjectives, animals, names} from 'unique-names-generator';
 
 export function addressToAvatarConfig(address: string) {
-  const randoms = Alea(address);
+  const randoms = Alea(address.toLowerCase());
 
   function choose<T>(choices: T[]): T {
     return choices[Math.floor(randoms.next() * choices.length)];
@@ -51,7 +51,7 @@ export function addressToUsername(address: string): string {
   return uniqueNamesGenerator({
     dictionaries: [adjectives, animals, names],
     separator: ' ',
-    seed: address,
+    seed: address.toLowerCase(),
     style: 'capital',
   });
 }
