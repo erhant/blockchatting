@@ -1,7 +1,7 @@
 import {showNotification, updateNotification} from '@mantine/notifications';
 import {ContractTransaction} from 'ethers';
 import {ReactNode} from 'react';
-import {XMarkIcon, InformationCircleIcon, CheckIcon} from '@heroicons/react/24/solid';
+import {IconCircleX, IconAlertCircle, IconCircleCheck} from '@tabler/icons';
 import {randomUniqueString, truncateAddress} from './utility';
 
 const NOTIF_SX = {
@@ -18,9 +18,9 @@ function variantToColor(variant: VariantType): string {
 }
 function variantToIcon(variant: VariantType): ReactNode {
   return {
-    error: <XMarkIcon />,
-    info: <InformationCircleIcon />,
-    success: <CheckIcon />,
+    error: <IconCircleX />,
+    info: <IconAlertCircle />,
+    success: <IconCircleCheck />,
   }[variant];
 }
 

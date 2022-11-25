@@ -24,12 +24,12 @@
     "url": "https://github.com/erhant/blockchatting/issues"
   },
   "dependencies": {
-    "@heroicons/react": "^2.0.11",
     "@mantine/core": "^4.2.0",
     "@mantine/hooks": "^4.2.0",
     "@mantine/next": "^4.2.0",
     "@mantine/notifications": "^4.2.0",
     "@metamask/eth-sig-util": "^4.0.1",
+    "@tabler/icons": "^1.113.0",
     "aes256": "^1.1.0",
     "alea": "^1.0.1",
     "ascii85": "^1.0.2",
@@ -40,11 +40,9 @@
     "react-dom": "18.0.0",
     "react-nice-avatar": "^1.2.4",
     "unique-names-generator": "^4.7.1",
-    "web3modal": "^1.9.7"
+    "wagmi": "^0.8.6"
   },
   "devDependencies": {
-    "@typechain/ethers-v5": "^10.0.0",
-    "@typechain/hardhat": "^6.1.0",
     "@types/node": "^14.11.2",
     "@types/react": "18.0.5",
     "@types/react-dom": "18.0.1",

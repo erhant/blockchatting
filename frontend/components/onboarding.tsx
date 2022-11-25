@@ -1,13 +1,11 @@
-import {Box, Container, Text, Group, Stepper, Button} from '@mantine/core';
+import {Stepper, Button} from '@mantine/core';
 import {FC, useEffect, useState} from 'react';
 import {useChatContext} from '../context/chat.context';
 import {Chat} from '../types/typechain';
 import {CryptoECIES, CryptoMetaMask, generateSecret} from '../lib/crypto';
-import {WalletType} from '../types/wallet';
 import Dashboard from './dashboard';
-import {notifyError, notifyTransaction, notifyTransactionUpdate, notifyTransactionWithWait} from '../utils/notify';
-import ReactNiceAvatar from 'react-nice-avatar';
-import {addressToAvatarConfig, addressToUsername} from '../lib/profile';
+import {notifyError, notifyTransactionWithWait} from '../utils/notify';
+import {addressToUsername} from '../lib/profile';
 import {BigNumber} from 'ethers';
 import {formatEther} from 'ethers/lib/utils';
 import Layout from './layout';
@@ -53,6 +51,7 @@ const Onboarding: FC<{address: string}> = ({address}) => {
         // decrypt with your metamask
         setIsLoading(true);
         try {
+          // TODO: give provider here
           const userSecret = await new CryptoMetaMask(address, window.ethereum).decrypt(encryptedUserSecret);
           setUserScheme(new CryptoECIES(userSecret));
           setActiveStep(OnboardStatus.FETCHING);

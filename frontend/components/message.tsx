@@ -1,7 +1,6 @@
 import {Paper, Group, Text} from '@mantine/core';
 import type {FC} from 'react';
 import {MessageType} from '../types/message';
-import styles from '../styles/message.module.scss';
 
 const TIME_LOCALES = ['tr', 'en'];
 

@@ -1,5 +1,5 @@
-import {ArrowPathIcon, PaperAirplaneIcon} from '@heroicons/react/24/solid';
-import {Box, Container, Text, Divider, TextInput, ActionIcon, Loader, Group, Stack, ScrollArea} from '@mantine/core';
+import {IconRefresh, IconSend} from '@tabler/icons';
+import {Box, Text, Divider, TextInput, ActionIcon, Loader, Group, ScrollArea} from '@mantine/core';
 import {BigNumber} from 'ethers';
 import {FC, useCallback, useEffect, useState} from 'react';
 import {CryptoAES256} from '../lib/crypto';
@@ -114,7 +114,7 @@ const MessagingBoard: FC<{myAddress: string; peerAddress: string; contract: Chat
       <Group>
         {/* refresh icon */}
         <ActionIcon onClick={getMessages}>
-          <ArrowPathIcon />
+          <IconRefresh />
         </ActionIcon>
 
         {/* message input */}
@@ -131,7 +131,7 @@ const MessagingBoard: FC<{myAddress: string; peerAddress: string; contract: Chat
           <Loader />
         ) : (
           <ActionIcon onClick={handleSendMessage}>
-            <PaperAirplaneIcon />
+            <IconSend />
           </ActionIcon>
         )}
       </Group>

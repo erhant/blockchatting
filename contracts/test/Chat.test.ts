@@ -13,12 +13,11 @@ describe('Chat', async () => {
   let owner: SignerWithAddress;
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
-  let signers: SignerWithAddress[];
 
   // deploy the contract once
   before(async () => {
     const factory = (await ethers.getContractFactory('Chat')) as unknown as Chat__factory;
-    [owner, alice, bob, ...signers] = await ethers.getSigners();
+    [owner, alice, bob] = await ethers.getSigners();
     contract = await factory.deploy();
     await contract.deployed();
     expect(await contract.owner()).to.eq(owner.address);

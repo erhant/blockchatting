@@ -1,12 +1,13 @@
 import {ethers} from 'ethers';
+import {hardhat, goerli} from 'wagmi/chains';
 
 /**
  * Contract addresses for each ChainID. These can also be read from .env
  */
 const contractAddresses: Readonly<{[contractName: string]: {[chainId: number]: string | undefined}}> = {
   Chat: {
-    31337: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
-    4: '0x7C9f4AA2fe39c7F5E9E18626D2CDF577af12a47D',
+    [hardhat.id]: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+    [goerli.id]: undefined,
   },
 };
 
@@ -15,7 +16,7 @@ const contractAddresses: Readonly<{[contractName: string]: {[chainId: number]: s
  *
  * @param {string} contractName name of the contract you want to connect
  * @param {number} chainId chainId of the chain where the contract is deployed at (e.g. 31337)
- * @throws
+ * @throws an error
  *  if contract name does not exist,
  *  if the chainId is not listed under the contract name,
  *  if the address is explicitly undefined,

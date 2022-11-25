@@ -1,20 +1,22 @@
 import {Image, Stack, Text, Box, Center} from '@mantine/core';
-import {FC} from 'react';
-import {useWalletContext} from '../context/wallet.context';
+import type {FC} from 'react';
 import styles from '../styles/wallet-connection.module.scss';
+import {useAccount, useConnect, useDisconnect, chain} from 'wagmi';
 
 const WalletConnection: FC = () => {
-  const {disconnectWallet, connectWallet, wallet} = useWalletContext(); 
+  const {isConnected} = useAccount();
+  const {connect, connectors} = useConnect();
+  const {disconnect} = useDisconnect();
 
   return (
     <Center className={styles['center']}>
-      <Stack onClick={() => (wallet ? disconnectWallet() : connectWallet())} p="md">
+      <Stack onClick={() => (isConnected ? disconnect() : connect({connector: connectors[0]}))} p="md">
         <Text id={styles['welcome-text']}>Connect your wallet to start chatting!</Text>
         <Box className={styles['login-center']}>
           <Center>
             <Image id={styles['metamask-logo']} src="/brands/metamask.svg" alt="metamask" />
           </Center>
-          <Text>{wallet ? 'Disconnect' : 'Login with MetaMask'}</Text>
+          <Text>{isConnected ? 'Disconnect' : 'Login with MetaMask'}</Text>
         </Box>
       </Stack>
     </Center>

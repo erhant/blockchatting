@@ -1,6 +1,6 @@
 import {ActionIcon, Affix, useMantineColorScheme} from '@mantine/core';
 import {FC} from 'react';
-import {SunIcon, MoonIcon} from '@heroicons/react/24/solid';
+import {IconSun, IconMoon} from '@tabler/icons';
 
 const ICON_SIZE = 24;
 const ThemeToggleButton: FC = () => {
@@ -9,7 +9,7 @@ const ThemeToggleButton: FC = () => {
   return (
     <Affix position={{left: 20, bottom: 20}}>
       <ActionIcon onClick={() => toggleColorScheme()}>
-        {colorScheme === 'dark' ? <SunIcon fontSize="1.2em" /> : <MoonIcon fontSize="1.2em" />}
+        {colorScheme === 'dark' ? <IconSun size={ICON_SIZE} /> : <IconMoon size={ICON_SIZE} />}
       </ActionIcon>
     </Affix>
   );

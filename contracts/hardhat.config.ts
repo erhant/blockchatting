@@ -6,14 +6,9 @@ import type {HardhatUserConfig} from 'hardhat/types';
 import '@nomiclabs/hardhat-waffle';
 import '@typechain/hardhat';
 import '@nomiclabs/hardhat-etherscan';
-import '@nomiclabs/hardhat-solhint';
-import 'solidity-coverage';
+import '@nomicfoundation/hardhat-chai-matchers';
 
-const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
-
-const config: HardhatUserConfig & {
-  etherscan: {apiKey: string | undefined};
-} = {
+const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',
   solidity: {
     compilers: [{version: '0.8.9', settings: {}}],
@@ -25,10 +20,6 @@ const config: HardhatUserConfig & {
   networks: {
     hardhat: {},
     localhost: {},
-  },
-  etherscan: {
-    // Your API key for Etherscan (from https://etherscan.io/)
-    apiKey: ETHERSCAN_API_KEY,
   },
 };
 
