@@ -79,6 +79,8 @@ const Onboarding: FC<{address: string}> = ({address}) => {
 
     setIsLoading(true);
     try {
+      // @ts-ignore
+      // todo: use connector
       const encryptedUserSecret = await new CryptoMetaMask(address, window.ethereum).encrypt(userSecret);
       try {
         const tx = await contract.initializeUser(
@@ -155,6 +157,7 @@ const Onboarding: FC<{address: string}> = ({address}) => {
           {isUserInitialized == false && (
             <Button
               onClick={() => initializeUser(contract!)}
+              disabled={isLoading}
               sx={{margin: 'auto', width: '100%'}}
             >{`Initialize (${formatEther(entryFee!)} ETH)`}</Button>
           )}

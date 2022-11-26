@@ -7,7 +7,7 @@ import {hardhat, goerli} from 'wagmi/chains';
 const contractAddresses: Readonly<{[contractName: string]: {[chainId: number]: string | undefined}}> = {
   Chat: {
     [hardhat.id]: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
-    [goerli.id]: undefined,
+    [goerli.id]: '0x01eA11fE95123946FC22979BAF73Bb417C5e078F',
   },
 };
 
