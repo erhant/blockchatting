@@ -95,7 +95,7 @@ const Dashboard: FC<{myAddress: string; contract: Chat; userScheme: CryptoECIES;
                     )
                 )
               ) : (
-                <Text>You have not chatted with anyone yet!</Text>
+                <Text>You have not chatted with anyone yet! You can also chat with yourself :)</Text>
               )}
             </ScrollArea>
 

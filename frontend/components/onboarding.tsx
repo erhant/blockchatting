@@ -117,7 +117,10 @@ const Onboarding: FC<{address: string}> = ({address}) => {
       ]);
       setIsLoading(false);
       setPreviousPeers(
-        chatFromMe.map(h => h.args.peer.toLowerCase()).concat(chatFromThem.map(h => h.args.initializer.toLowerCase()))
+        chatFromMe
+          .map(h => h.args.peer.toLowerCase())
+          .concat(chatFromThem.map(h => h.args.initializer.toLowerCase()))
+          .filter(p => p.toLowerCase() != address.toLowerCase())
       );
     }
 

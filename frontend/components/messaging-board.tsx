@@ -34,7 +34,7 @@ const MessagingBoard: FC<{myAddress: string; peerAddress: string; contract: Chat
     const msgs: MessageType[] = msgsRaw
       .sort((a, b) => (a._time.lt(b._time) ? -1 : 1))
       .map(msgRaw => ({
-        own: msgRaw._from.toLowerCase() == myAddress,
+        own: msgRaw._from.toLowerCase() == myAddress.toLowerCase(),
         message: chatScheme.decrypt(Buffer.from(msgRaw._message, 'hex')).toString(),
         time: msgRaw._time.toNumber(),
       }));
